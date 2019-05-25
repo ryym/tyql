@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module":"commonjs",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "declaration": true,
+    "declarationDir": "dist/types",
+    "outDir": "dist/lib",
+    "baseUrl": ".",
+    "paths": {
+      "~src/*": ["src/*"]
+    },
+    "allowJs": false,
+    "strict": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "downlevelIteration": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true
+
+  },
+  "include": ["src"],
+  "exclude": ["**/*_test.ts"]
+}

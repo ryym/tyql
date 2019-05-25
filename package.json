@@ -1,0 +1,23 @@
+{
+  "name": "tyql",
+  "version": "1.0.0",
+  "license": "MIT",
+  "engines": {
+    "node": ">= 8.0.0"
+  },
+  "main": "dist/lib/index.js",
+  "typings": "dist/types/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "author": "ryym <ryym.64@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ryym/tyql"
+  },
+  "scripts": {},
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^3.4.5"
+  }
+}
