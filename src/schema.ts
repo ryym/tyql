@@ -6,7 +6,7 @@ import { QueryBuilder, newQueryDef } from './queryBuilder';
 export type Schema<T, Rels extends AnyRelsDef<T>> = Columns<T> &
   Rels & {
     $all(): AllColumns<T>;
-    $query(): QueryBuilder<T, T[], T>;
+    $query(): QueryBuilder<T, T, T>;
   };
 
 export type SchemaConfig<T, Rels extends RelsTemplate<T>> = {
@@ -46,7 +46,7 @@ export function schema<T, Rels extends RelsTemplate<T>>(
 
   const methods = {
     $query: () => {
-      return new QueryBuilder<T, T[], T>(newQueryDef(clazz));
+      return new QueryBuilder<T, T, T>(newQueryDef(clazz));
     },
     $all: () => new AllColumns(clazz.tableDef().name, clazz),
   };

@@ -30,7 +30,7 @@ export class QueryBuilder<From, R, Models> {
 
   innerJoin<A extends Models, B>(
     rel: TableRel<A, B>
-  ): QueryBuilder<From, ToQueryResult<R, B[]>, Models | B> {
+  ): QueryBuilder<From, ToRowType<R, B>, Models | B> {
     const queryDef: QueryDef<Models | B> = { ...this.queryDef };
     queryDef.defaultSelect.push(rel.$all());
     queryDef.models.add(rel.$rightCol.model);
@@ -51,7 +51,7 @@ export class QueryBuilder<From, R, Models> {
 
   // XXX:
   // TODO: Return value[] instead of [value[]] when result has 1 column.
-  async load(conn: Knex): Promise<R extends Select<infer V> ? V : R> {
+  async load(conn: Knex): Promise<ResultRowType<R>[]> {
     const query = constructQuery(conn as any, this.queryDef);
     console.log(query.toString());
     // return null as any;
@@ -62,6 +62,10 @@ export class QueryBuilder<From, R, Models> {
     console.log('--------------------');
 
     return mapResults(this.queryDef, rows);
+  }
+
+  async first(_conn: Knex): Promise<ResultRowType<R>> {
+    throw new Error('not implemented yet');
   }
 }
 
@@ -118,21 +122,28 @@ const mapResults = ({ select, defaultSelect }: QueryDef<any>, rows: any[][]): an
     });
   }
 
-  // XXX: 今だと [User[], Post[]] を返すけど、 Diesel だと [User, Post][]
-  // そっちの方が良さげ？
-  const lists: any[][] = defaultSelect.map(() => []);
-  rows.forEach(row => {
-    let rowIdx = 0;
-    defaultSelect.forEach((sel, selIdx) => {
+  if (defaultSelect.length === 1) {
+    return rows.map(rawRow => {
+      let rowIdx = 0;
+      const sel = defaultSelect[0];
       const model = sel.model.template();
       sel.columns.forEach(col => {
-        (model as any)[col.fieldName] = row[rowIdx++];
+        (model as any)[col.fieldName] = rawRow[rowIdx++];
       });
-      lists[selIdx].push(model);
+      return model;
     });
-  });
-
-  return lists.length === 1 ? lists[0] : lists;
+  } else {
+    return rows.map(rawRow => {
+      let rowIdx = 0;
+      return defaultSelect.map(sel => {
+        const model = sel.model.template();
+        sel.columns.forEach(col => {
+          (model as any)[col.fieldName] = rawRow[rowIdx++];
+        });
+        return model;
+      });
+    });
+  }
 };
 
 type ValueOf<C> = C extends Column<any, infer V>
@@ -140,13 +151,15 @@ type ValueOf<C> = C extends Column<any, infer V>
   : C extends AllColumns<infer T>
   ? T
   : never;
-type ValuesOf<T> = { [P in keyof T]: ValueOf<T[P]> }[];
+type ValuesOf<T> = { [P in keyof T]: ValueOf<T[P]> };
 export type Select<V> = { selects: V };
 
-type ToQueryResult<R1, R2> = R1 extends Select<infer V>
+type ToRowType<A, B> = A extends Select<infer V>
   ? V
-  : R1 extends [infer T1, infer T2]
-  ? [T1, T2, R2]
-  : R1 extends [infer T1, infer T2, infer T3]
-  ? [T1, T2, T3, R2]
-  : [R1, R2];
+  : A extends [infer T1, infer T2]
+  ? [T1, T2, B]
+  : A extends [infer T1, infer T2, infer T3]
+  ? [T1, T2, T3, B]
+  : [A, B];
+
+type ResultRowType<R> = R extends Select<infer V> ? V : R;

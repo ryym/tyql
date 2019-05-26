@@ -66,10 +66,9 @@ withDb(knex)(async (knex: Knex) => {
   console.log(users);
   console.log('----------------');
 
-  let [users2, posts] = await t.users
+  let result2 = await t.users
     .$query()
     .innerJoin(t.users.posts)
     .load(knex);
-  console.log(users2);
-  console.log(posts);
+  console.log(result2);
 });
