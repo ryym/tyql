@@ -1,38 +1,95 @@
+import * as Knex from 'knex';
 import { ModelClass } from './types';
 import { TableRel } from './tableRel';
 import { AllColumns, Column } from './column';
 
+type Selectable<Models> = AllColumns<Models> | Column<Models, any>;
+
+export type QueryDef<Models> = {
+  from: string;
+  models: Set<ModelClass<any>>;
+  defaultSelect: Selectable<Models>[];
+  select: Selectable<Models>[] | null;
+  innerJoins: TableRel<Models, Models>[];
+};
+
+export const newQueryDef = <T>(clazz: ModelClass<T>): QueryDef<T> => {
+  return {
+    from: clazz.tableDef().name,
+    models: new Set([clazz]),
+    defaultSelect: [new AllColumns(clazz.tableDef().name, clazz)],
+    select: null,
+    innerJoins: [],
+  };
+};
+
 export class QueryBuilder<From, R, Models> {
   _phantom?: ModelClass<From>;
-  constructor(private data: string[] = []) {}
+
+  constructor(private queryDef: QueryDef<Models>) {}
 
   innerJoin<A extends Models, B>(
     rel: TableRel<A, B>
   ): QueryBuilder<From, ToQueryResult<R, B[]>, Models | B> {
-    const data = this.data.concat(
-      `inner join: ${rel.$left.tableDef().name} + ${rel.$right.tableDef().name}`
-    );
-    return new QueryBuilder(data);
+    const queryDef: QueryDef<Models | B> = { ...this.queryDef };
+    queryDef.defaultSelect.push(rel.$all());
+    queryDef.models.add(rel.$rightCol.model);
+    queryDef.innerJoins.push(rel);
+    return new QueryBuilder(queryDef);
   }
 
   select<CS extends (AllColumns<Models> | Column<Models, any>)[]>(
     ...cols: CS
   ): QueryBuilder<From, Select<ValuesOf<CS>>, Models> {
-    let msg = 'select ';
+    const select: Selectable<Models>[] = [];
     cols.forEach(col => {
-      if (col instanceof AllColumns) {
-        msg += Object.keys(col.columns()).join(' ');
-      } else {
-        msg += `${col.name} `;
-      }
+      select.push(col);
     });
-    return new QueryBuilder(this.data.concat(msg));
+    this.queryDef.select = select;
+    return new QueryBuilder(this.queryDef);
   }
 
-  fetch(): Promise<R> {
-    return null as any; // TODO
+  async load(conn: Knex): Promise<R> {
+    const query = constructQuery(conn as any, this.queryDef);
+    console.log(query.toString());
+    // return null as any;
+    return query;
   }
 }
+
+const constructQuery = (
+  knex: Knex.QueryBuilder,
+  def: QueryDef<any>
+): Knex.QueryBuilder => {
+  console.log(def);
+  const cols = getColumnIdentifiers(def.select || def.defaultSelect);
+
+  def.innerJoins.forEach(rel => {
+    knex = knex.innerJoin(
+      `${rel.$rightCol.model.tableDef().name} AS ${rel.$rightCol.tableName}`,
+      rel.$rightCol.identifier(),
+      rel.$leftCol.identifier()
+    );
+  });
+
+  return knex.select(...cols).from(def.from);
+};
+
+const getColumnIdentifiers = (select: Selectable<any>[]): string[] => {
+  return select.reduce(
+    (cols, sel) => {
+      if (sel instanceof AllColumns) {
+        const allCols = Object.values(sel.columns()).map(c => c.identifier());
+        return cols.concat(allCols);
+      } else {
+        cols.push(sel.identifier());
+        return cols;
+      }
+      return cols;
+    },
+    [] as string[]
+  );
+};
 
 type ValueOf<C> = C extends Column<any, infer V>
   ? V

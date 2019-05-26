@@ -4,4 +4,4 @@ export const tableDef = (name: string): TableDefinition => {
   return { name };
 };
 
-export { schema } from './schema';
+export { schema, to } from './schema';

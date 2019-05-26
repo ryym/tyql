@@ -1,2 +1,1 @@
-import './tyql';
-import './play';
+export * from './tyql';
