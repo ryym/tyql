@@ -8,7 +8,7 @@ type Selectable<Models> = AllColumns<Models> | Column<Models, any>;
 export type QueryDef<Models> = {
   from: string;
   models: Set<ModelClass<any>>;
-  defaultSelect: Selectable<Models>[];
+  defaultSelect: AllColumns<Models>[];
   select: Selectable<Models>[] | null;
   innerJoins: TableRel<Models, Models>[];
 };
@@ -49,11 +49,19 @@ export class QueryBuilder<From, R, Models> {
     return new QueryBuilder(this.queryDef);
   }
 
-  async load(conn: Knex): Promise<R> {
+  // XXX:
+  // TODO: Return value[] instead of [value[]] when result has 1 column.
+  async load(conn: Knex): Promise<R extends Select<infer V> ? V : R> {
     const query = constructQuery(conn as any, this.queryDef);
     console.log(query.toString());
     // return null as any;
-    return query;
+
+    // TODO: Adjust options for RDB. This options is only for PostgreSQL.
+    const rows = await query.options({ rowMode: 'array' });
+    console.log(rows);
+    console.log('--------------------');
+
+    return mapResults(this.queryDef, rows);
   }
 }
 
@@ -79,24 +87,60 @@ const getColumnIdentifiers = (select: Selectable<any>[]): string[] => {
   return select.reduce(
     (cols, sel) => {
       if (sel instanceof AllColumns) {
-        const allCols = Object.values(sel.columns()).map(c => c.identifier());
-        return cols.concat(allCols);
+        return cols.concat(sel.columns.map(c => c.identifier()));
       } else {
         cols.push(sel.identifier());
         return cols;
       }
-      return cols;
     },
     [] as string[]
   );
 };
 
+const mapResults = ({ select, defaultSelect }: QueryDef<any>, rows: any[][]): any => {
+  if (select != null) {
+    return rows.map(rawRow => {
+      const row: any[] = [];
+      let rowIdx = 0;
+      let rawRowIdx = 0;
+      select.forEach(sel => {
+        if (sel instanceof AllColumns) {
+          const m = sel.model.template();
+          sel.columns.forEach(col => {
+            m[col.fieldName] = rawRow[rawRowIdx++];
+          });
+          row[rowIdx++] = m;
+        } else {
+          row[rowIdx++] = rawRow[rawRowIdx++];
+        }
+      });
+      return row;
+    });
+  }
+
+  // XXX: 今だと [User[], Post[]] を返すけど、 Diesel だと [User, Post][]
+  // そっちの方が良さげ？
+  const lists: any[][] = defaultSelect.map(() => []);
+  rows.forEach(row => {
+    let rowIdx = 0;
+    defaultSelect.forEach((sel, selIdx) => {
+      const model = sel.model.template();
+      sel.columns.forEach(col => {
+        (model as any)[col.fieldName] = row[rowIdx++];
+      });
+      lists[selIdx].push(model);
+    });
+  });
+
+  return lists.length === 1 ? lists[0] : lists;
+};
+
 type ValueOf<C> = C extends Column<any, infer V>
   ? V
   : C extends AllColumns<infer T>
-  ? T[]
+  ? T
   : never;
-type ValuesOf<T> = { [P in keyof T]: ValueOf<T[P]> };
+type ValuesOf<T> = { [P in keyof T]: ValueOf<T[P]> }[];
 export type Select<V> = { selects: V };
 
 type ToQueryResult<R1, R2> = R1 extends Select<infer V>

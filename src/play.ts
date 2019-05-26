@@ -53,13 +53,23 @@ const knex = Knex({
   },
 });
 withDb(knex)(async (knex: Knex) => {
-  const q = t.users
-    .$query()
+  let q = t.users
+    .$query() //.select(t.users.email);
     .innerJoin(t.users.posts)
-    .select(t.users.user_name, t.users.posts.$all());
-  // .select(t.users.$all());
-  //   console.log(q);
+    .select(t.users.user_name, t.users.posts.$all(), t.users.created_at, t.users.$all());
 
   const result = await q.load(knex);
   console.log(result);
+  console.log('----------------');
+
+  let users = await t.users.$query().load(knex);
+  console.log(users);
+  console.log('----------------');
+
+  let [users2, posts] = await t.users
+    .$query()
+    .innerJoin(t.users.posts)
+    .load(knex);
+  console.log(users2);
+  console.log(posts);
 });

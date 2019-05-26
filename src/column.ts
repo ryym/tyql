@@ -28,13 +28,11 @@ export class Column<T, V> {
 export type Columns<T> = { readonly [K in keyof T]: Column<T, T[K]> };
 
 export class AllColumns<T> {
-  constructor(
-    private readonly tableName: string,
-    private readonly clazz: ModelClass<T>
-  ) {}
+  readonly columns: Column<T, any>[];
 
-  columns(): Columns<T> {
-    return toColumns(this.tableName, this.clazz);
+  constructor(private readonly tableName: string, readonly model: ModelClass<T>) {
+    const columns = toColumns(this.tableName, this.model);
+    this.columns = Object.values(columns);
   }
 }
 
