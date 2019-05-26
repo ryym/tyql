@@ -1,5 +1,5 @@
 import { Columns, AllColumns, Column } from './column';
-import { ModelClass } from './types';
+import { ModelClass } from './model';
 
 export type TableRel<A, B> = Columns<B> & {
   $leftCol: Column<A, any>;

@@ -1,5 +1,5 @@
 import * as Knex from 'knex';
-import { ModelClass } from './types';
+import { ModelClass } from './model';
 import { TableRel } from './tableRel';
 import { AllColumns, Column } from './column';
 
@@ -15,9 +15,9 @@ export type QueryDef<Models> = {
 
 export const newQueryDef = <T>(clazz: ModelClass<T>): QueryDef<T> => {
   return {
-    from: clazz.tableDef().name,
+    from: clazz.tyql.table,
     models: new Set([clazz]),
-    defaultSelect: [new AllColumns(clazz.tableDef().name, clazz)],
+    defaultSelect: [new AllColumns(clazz.tyql.table, clazz)],
     select: null,
     innerJoins: [],
   };
@@ -78,7 +78,7 @@ const constructQuery = (
 
   def.innerJoins.forEach(rel => {
     knex = knex.innerJoin(
-      `${rel.$rightCol.model.tableDef().name} AS ${rel.$rightCol.tableName}`,
+      `${rel.$rightCol.model.tyql.table} AS ${rel.$rightCol.tableName}`,
       rel.$rightCol.identifier(),
       rel.$leftCol.identifier()
     );
@@ -109,7 +109,7 @@ const mapResults = ({ select, defaultSelect }: QueryDef<any>, rows: any[][]): an
       let rawRowIdx = 0;
       select.forEach(sel => {
         if (sel instanceof AllColumns) {
-          const m = sel.model.template();
+          const m = sel.model.tyql.template();
           sel.columns.forEach(col => {
             m[col.fieldName] = rawRow[rawRowIdx++];
           });
@@ -126,7 +126,7 @@ const mapResults = ({ select, defaultSelect }: QueryDef<any>, rows: any[][]): an
     return rows.map(rawRow => {
       let rowIdx = 0;
       const sel = defaultSelect[0];
-      const model = sel.model.template();
+      const model = sel.model.tyql.template();
       sel.columns.forEach(col => {
         (model as any)[col.fieldName] = rawRow[rowIdx++];
       });
@@ -136,7 +136,7 @@ const mapResults = ({ select, defaultSelect }: QueryDef<any>, rows: any[][]): an
     return rows.map(rawRow => {
       let rowIdx = 0;
       return defaultSelect.map(sel => {
-        const model = sel.model.template();
+        const model = sel.model.tyql.template();
         sel.columns.forEach(col => {
           (model as any)[col.fieldName] = rawRow[rowIdx++];
         });

@@ -1,4 +1,4 @@
-import { ModelClass } from './types';
+import { ModelClass } from './model';
 import { Columns, AllColumns, toColumns, Column } from './column';
 import { AnyRelsDef, RelsTemplate, RelsDef, TableRel } from './tableRel';
 import { QueryBuilder, newQueryDef } from './queryBuilder';
@@ -19,14 +19,14 @@ export function schema<T, Rels extends RelsTemplate<T>>(
   clazz: ModelClass<T>,
   config: SchemaConfig<T, Rels>
 ): Schema<T, RelsDef<T, Rels>> {
-  const columns = toColumns(clazz.tableDef().name, clazz);
-  const table = clazz.tableDef();
+  const columns = toColumns(clazz.tyql.table, clazz);
+  const tableName = clazz.tyql.table;
 
   const relsTmpl = config.rels || <Rels>{};
   const rels: RelsDef<T, Rels> = Object.keys(relsTmpl).reduce(
     (rls, name) => {
       const [leftColName, [otherClass, rightColName]] = relsTmpl[name];
-      const tableAlias = `${table.name}_${name}`;
+      const tableAlias = `${tableName}_${name}`;
       const rightColumns = toColumns(tableAlias, otherClass);
       const rel: TableRel<T, any> = Object.assign(rightColumns, {
         $leftCol: columns[leftColName],
@@ -48,7 +48,7 @@ export function schema<T, Rels extends RelsTemplate<T>>(
     $query: () => {
       return new QueryBuilder<T, T, T>(newQueryDef(clazz));
     },
-    $all: () => new AllColumns(clazz.tableDef().name, clazz),
+    $all: () => new AllColumns(clazz.tyql.table, clazz),
   };
 
   return Object.assign(methods, columns, rels);

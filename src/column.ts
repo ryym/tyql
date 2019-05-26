@@ -1,4 +1,4 @@
-import { ModelClass } from './types';
+import { ModelClass } from './model';
 
 export type ColumnConfig = {
   tableName: string;
@@ -37,7 +37,7 @@ export class AllColumns<T> {
 }
 
 export const toColumns = <T>(tableName: string, clazz: ModelClass<T>): Columns<T> => {
-  const tmpl = clazz.template();
+  const tmpl = clazz.tyql.template();
   const columns: Columns<T> = Object.getOwnPropertyNames(tmpl).reduce(
     (cols, name) => {
       cols[name] = new Column(clazz, {

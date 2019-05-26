@@ -1,9 +1,11 @@
 import * as Knex from 'knex';
-import { tableDef, schema, to } from './tyql';
+import { modelConfig, schema, to } from './tyql';
 
 class User {
-  static tableDef = () => tableDef('users');
-  static template = () => new User('taro', 'taro@hoge.com', new Date());
+  static tyql = modelConfig({
+    table: 'users',
+    template: () => new User('taro', 'taro@hoge.com', new Date()),
+  });
 
   readonly id: number | null = null;
 
@@ -11,8 +13,10 @@ class User {
 }
 
 class Post {
-  static tableDef = () => tableDef('posts');
-  static template = () => new Post();
+  static tyql = modelConfig({
+    table: 'posts',
+    template: () => new Post(),
+  });
 
   readonly id: number | null = null;
   author_id: number = 0;
@@ -72,3 +76,5 @@ withDb(knex)(async (knex: Knex) => {
     .load(knex);
   console.log(result2);
 });
+
+// TODO: 次は fromRel の実現性を確認する。
