@@ -1,6 +1,6 @@
 {
   "name": "tyql",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "license": "MIT",
   "engines": {
     "node": ">= 8.0.0"
@@ -16,7 +16,9 @@
     "url": "https://github.com/ryym/tyql"
   },
   "scripts": {
-    "start": "npx tsc --watch"
+    "build": "npx tsc",
+    "start": "npx tsc --watch",
+    "preversion": "rm -rf dist && yarn build"
   },
   "dependencies": {
     "knex": "^0.16.5"
