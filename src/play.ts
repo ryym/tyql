@@ -24,16 +24,34 @@ class Post {
   content: string = '';
 }
 
+class Comment {
+  static tyql = modelConfig({
+    table: 'comments',
+    template: () => new Comment(),
+  });
+
+  readonly id: number | null = null;
+  author_id: number = 0;
+  content: string = '';
+}
+
 // 個々は独立してるんだから、実際には1つのオブジェクトにまとめなくても別にいい。
+// Users, Posts のようにルートだけ大文字にすれば、間違った使用を減らせそう。
 const t = {
   users: schema(User, {
     rels: {
       posts: ['id', to(Post, 'author_id')],
+      comments: ['id', to(Comment, 'author_id')],
     },
   }),
   posts: schema(Post, {
     rels: {
       author: ['author_id', to(User, 'id')],
+    },
+  }),
+  comments: schema(Comment, {
+    rels: {
+      authro: ['author_id', to(User, 'id')],
     },
   }),
 };
@@ -69,6 +87,9 @@ withDb(knex)(async (knex: Knex) => {
   let users = await t.users.$query().load(knex);
   console.log(users);
   console.log('----------------');
+
+  const rs = await t.users.$loadRels([], t.users.posts, t.users.comments);
+  console.log(rs);
 
   let result2 = await t.users
     .$query()

@@ -6,7 +6,15 @@ import { QueryBuilder, newQueryDef } from './queryBuilder';
 export interface SchemaActions<T> {
   $query(): QueryBuilder<T, T, T>;
   $all(): AllColumns<T>;
+  $loadRels<RS extends TableRel<T, any>[]>(
+    records: T[],
+    ...rels: RS
+  ): Promise<LoadedRels<T, RS>>;
 }
+
+export type LoadedRels<T, RS> = {
+  [K in keyof RS]: RS[K] extends TableRel<T, infer U> ? Map<string, U[]> : never
+};
 
 const newSchemaActions = <T>(model: ModelClass<T>): SchemaActions<T> => {
   return {
@@ -15,6 +23,9 @@ const newSchemaActions = <T>(model: ModelClass<T>): SchemaActions<T> => {
     },
     $all() {
       return new AllColumns(model.tyql.table, model);
+    },
+    $loadRels() {
+      return null as any; // TODO
     },
   };
 };
