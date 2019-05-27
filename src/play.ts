@@ -1,11 +1,11 @@
 import * as Knex from 'knex';
-import { modelConfig, table, to } from './tyql';
+import { table, to } from './tyql';
 
 class User {
-  static tyql = modelConfig({
+  static tyql = {
     table: 'users',
     template: () => new User('taro', 'taro@hoge.com', new Date()),
-  });
+  };
 
   readonly id: number | null = null;
 
@@ -13,10 +13,10 @@ class User {
 }
 
 class Post {
-  static tyql = modelConfig({
+  static tyql = {
     table: 'posts',
     template: () => new Post(),
-  });
+  };
 
   readonly id: number | null = null;
   author_id: number = 0;
@@ -25,10 +25,10 @@ class Post {
 }
 
 class Comment {
-  static tyql = modelConfig({
+  static tyql = {
     table: 'comments',
     template: () => new Comment(),
-  });
+  };
 
   readonly id: number | null = null;
   author_id: number = 0;
