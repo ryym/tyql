@@ -1,5 +1,5 @@
 import * as Knex from 'knex';
-import { modelConfig, schema, to } from './tyql';
+import { modelConfig, table, to } from './tyql';
 
 class User {
   static tyql = modelConfig({
@@ -38,18 +38,18 @@ class Comment {
 // 個々は独立してるんだから、実際には1つのオブジェクトにまとめなくても別にいい。
 // Users, Posts のようにルートだけ大文字にすれば、間違った使用を減らせそう。
 const t = {
-  users: schema(User, {
+  users: table(User, {
     rels: {
       posts: ['id', to(Post, 'author_id')],
       comments: ['id', to(Comment, 'author_id')],
     },
   }),
-  posts: schema(Post, {
+  posts: table(Post, {
     rels: {
       author: ['author_id', to(User, 'id')],
     },
   }),
-  comments: schema(Comment, {
+  comments: table(Comment, {
     rels: {
       authro: ['author_id', to(User, 'id')],
     },

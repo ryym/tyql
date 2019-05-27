@@ -3,7 +3,7 @@ import { Columns, AllColumns, toColumns, Column } from './column';
 import { AnyRelsDef, RelsTemplate, RelsDef, TableRel } from './tableRel';
 import { QueryBuilder, newQueryDef } from './queryBuilder';
 
-export interface SchemaActions<T> {
+export interface TableActions<T> {
   $query(): QueryBuilder<T, T, T>;
   $all(): AllColumns<T>;
   $loadRels<RS extends TableRel<T, any>[]>(
@@ -16,7 +16,7 @@ export type LoadedRels<T, RS> = {
   [K in keyof RS]: RS[K] extends TableRel<T, infer U> ? Map<string, U[]> : never
 };
 
-const newSchemaActions = <T>(model: ModelClass<T>): SchemaActions<T> => {
+const newTableActions = <T>(model: ModelClass<T>): TableActions<T> => {
   return {
     $query() {
       return new QueryBuilder<T, T, T>(newQueryDef(model));
@@ -30,18 +30,18 @@ const newSchemaActions = <T>(model: ModelClass<T>): SchemaActions<T> => {
   };
 };
 
-export type Schema<T, Rels extends AnyRelsDef<T>> = Columns<T> & Rels & SchemaActions<T>;
+export type Table<T, Rels extends AnyRelsDef<T>> = Columns<T> & Rels & TableActions<T>;
 
-export type SchemaConfig<T, Rels extends RelsTemplate<T>> = {
+export type TableConfig<T, Rels extends RelsTemplate<T>> = {
   rels?: Rels;
 };
 
 // The syntax highlight of VSCode does not work correctly
 // if we define this by arrow function :(
-export function schema<T, Rels extends RelsTemplate<T>>(
+export function table<T, Rels extends RelsTemplate<T>>(
   clazz: ModelClass<T>,
-  config: SchemaConfig<T, Rels>
-): Schema<T, RelsDef<T, Rels>> {
+  config: TableConfig<T, Rels>
+): Table<T, RelsDef<T, Rels>> {
   const columns = toColumns(clazz.tyql.table, clazz);
   const tableName = clazz.tyql.table;
 
@@ -67,7 +67,7 @@ export function schema<T, Rels extends RelsTemplate<T>>(
     {} as any
   );
 
-  const actions = newSchemaActions(clazz);
+  const actions = newTableActions(clazz);
   return Object.assign(actions, columns, rels);
 }
 
