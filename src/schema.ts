@@ -3,11 +3,23 @@ import { Columns, AllColumns, toColumns, Column } from './column';
 import { AnyRelsDef, RelsTemplate, RelsDef, TableRel } from './tableRel';
 import { QueryBuilder, newQueryDef } from './queryBuilder';
 
-export type Schema<T, Rels extends AnyRelsDef<T>> = Columns<T> &
-  Rels & {
-    $all(): AllColumns<T>;
-    $query(): QueryBuilder<T, T, T>;
+export interface SchemaActions<T> {
+  $query(): QueryBuilder<T, T, T>;
+  $all(): AllColumns<T>;
+}
+
+const newSchemaActions = <T>(model: ModelClass<T>): SchemaActions<T> => {
+  return {
+    $query() {
+      return new QueryBuilder<T, T, T>(newQueryDef(model));
+    },
+    $all() {
+      return new AllColumns(model.tyql.table, model);
+    },
   };
+};
+
+export type Schema<T, Rels extends AnyRelsDef<T>> = Columns<T> & Rels & SchemaActions<T>;
 
 export type SchemaConfig<T, Rels extends RelsTemplate<T>> = {
   rels?: Rels;
@@ -44,14 +56,8 @@ export function schema<T, Rels extends RelsTemplate<T>>(
     {} as any
   );
 
-  const methods = {
-    $query: () => {
-      return new QueryBuilder<T, T, T>(newQueryDef(clazz));
-    },
-    $all: () => new AllColumns(clazz.tyql.table, clazz),
-  };
-
-  return Object.assign(methods, columns, rels);
+  const actions = newSchemaActions(clazz);
+  return Object.assign(actions, columns, rels);
 }
 
 // A utility to define relationship type safely.
