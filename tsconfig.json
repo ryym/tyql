@@ -19,7 +19,6 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true
-
   },
   "include": ["src"],
   "exclude": ["**/*_test.ts"]
