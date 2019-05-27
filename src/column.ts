@@ -1,4 +1,4 @@
-import { ModelClass } from './model';
+import { ModelClass, Fields } from './model';
 
 export type ColumnConfig = {
   tableName: string;
@@ -25,7 +25,7 @@ export class Column<T, V> {
   eq(_val: V) {}
 }
 
-export type Columns<T> = { readonly [K in keyof T]: Column<T, T[K]> };
+export type Columns<T> = { readonly [K in keyof Fields<T>]: Column<T, T[K]> };
 
 export class AllColumns<T> {
   readonly columns: Column<T, any>[];

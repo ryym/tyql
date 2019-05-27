@@ -1,4 +1,4 @@
-import { ModelClass } from './model';
+import { ModelClass, FieldNames } from './model';
 import { Columns, AllColumns, toColumns, Column } from './column';
 import { AnyRelsDef, RelsTemplate, RelsDef, TableRel } from './tableRel';
 import { QueryBuilder, newQueryDef } from './queryBuilder';
@@ -72,7 +72,7 @@ export function table<T, Rels extends RelsTemplate<T>>(
 }
 
 // A utility to define relationship type safely.
-export const to = <B>(klass: ModelClass<B>, col: keyof B): [ModelClass<B>, keyof B] => [
-  klass,
-  col,
-];
+export const to = <B>(
+  klass: ModelClass<B>,
+  col: FieldNames<B>
+): [ModelClass<B>, FieldNames<B>] => [klass, col];

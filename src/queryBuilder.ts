@@ -7,10 +7,10 @@ type Selectable<Models> = AllColumns<Models> | Column<Models, any>;
 
 export type QueryDef<Models> = {
   from: string;
-  models: Set<ModelClass<any>>;
-  defaultSelect: AllColumns<Models>[];
-  select: Selectable<Models>[] | null;
-  innerJoins: TableRel<Models, Models>[];
+  models: Set<ModelClass<Models>>;
+  defaultSelect: AllColumns<any>[];
+  select: Selectable<any>[] | null;
+  innerJoins: TableRel<any, any>[];
 };
 
 export const newQueryDef = <T>(clazz: ModelClass<T>): QueryDef<T> => {

@@ -10,6 +10,10 @@ class User {
   readonly id: number | null = null;
 
   constructor(public user_name: string, public email: string, public created_at: Date) {}
+
+  greet() {
+    return `Hello, I am ${this.user_name}.`;
+  }
 }
 
 class Post {
@@ -22,6 +26,8 @@ class Post {
   author_id: number = 0;
   title: string = '';
   content: string = '';
+
+  doSomething() {}
 }
 
 class Comment {
@@ -86,6 +92,7 @@ withDb(knex)(async (knex: Knex) => {
 
   let users = await t.users.$query().load(knex);
   console.log(users);
+  console.log(users[0].greet());
   console.log('----------------');
 
   const rs = await t.users.$loadRels([], t.users.posts, t.users.comments);
