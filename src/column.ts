@@ -38,7 +38,7 @@ export class AllColumns<T> {
 
 export const toColumns = <T>(tableName: string, clazz: ModelClass<T>): Columns<T> => {
   const tmpl = clazz.tyql.template();
-  const columns: Columns<T> = Object.getOwnPropertyNames(tmpl).reduce(
+  const columns: Columns<T> = Object.keys(tmpl).reduce(
     (cols, name) => {
       cols[name] = new Column(clazz, {
         tableName,

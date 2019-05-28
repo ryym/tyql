@@ -53,6 +53,7 @@ const t = {
   posts: table(Post, {
     rels: {
       author: ['author_id', to(User, 'id')],
+      tmp: ['content', to(Comment, 'content')],
     },
   }),
   comments: table(Comment, {
@@ -97,6 +98,8 @@ withDb(knex)(async (knex: Knex) => {
 
   const rs = await t.users.$loadRels([], t.users.posts, t.users.comments);
   console.log(rs);
+  // const rs2 = await t.posts.$loadRels([], t.posts.tmp, t.posts.author)
+  // console.log(rs2)
 
   let result2 = await t.users
     .$query()

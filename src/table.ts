@@ -1,6 +1,6 @@
 import { ModelClass, FieldNames } from './model';
 import { Columns, AllColumns, toColumns, Column } from './column';
-import { AnyRelsDef, RelsTemplate, RelsDef, TableRel } from './tableRel';
+import { AnyRelsDef, RelsTemplate, RelsDef, TableRel, RelsTo } from './tableRel';
 import { QueryBuilder, newQueryDef } from './queryBuilder';
 
 export interface TableActions<T> {
@@ -13,7 +13,7 @@ export interface TableActions<T> {
 }
 
 export type LoadedRels<T, RS> = {
-  [K in keyof RS]: RS[K] extends TableRel<T, infer U> ? Map<string, U[]> : never
+  [K in keyof RS]: RS[K] extends TableRel<T, infer U, infer V> ? Map<V, U[]> : never
 };
 
 const newTableActions = <T>(model: ModelClass<T>): TableActions<T> => {
@@ -24,7 +24,18 @@ const newTableActions = <T>(model: ModelClass<T>): TableActions<T> => {
     $all() {
       return new AllColumns(model.tyql.table, model);
     },
-    $loadRels() {
+    $loadRels<RS extends TableRel<T, any>[]>(
+      records: T[],
+      ...rels: RS
+    ): Promise<LoadedRels<T, RS>> {
+      console.log(records, rels);
+
+      // const promises = rels.map(rel => {
+      //   const key = rel.$leftCol.fieldName;
+      //   const values = records.map(r => r[key as keyof T]);
+      //   const q = new QueryBuilder<any, any, any>(newQueryDef(rel.$rightCol.model))
+      // });
+
       return null as any; // TODO
     },
   };
@@ -48,7 +59,7 @@ export function table<T, Rels extends RelsTemplate<T>>(
   const relsTmpl = config.rels || <Rels>{};
   const rels: RelsDef<T, Rels> = Object.keys(relsTmpl).reduce(
     (rls, name) => {
-      const [leftColName, [otherClass, rightColName]] = relsTmpl[name];
+      const [leftColName, { model: otherClass, column: rightColName }] = relsTmpl[name];
       const tableAlias = `${tableName}_${name}`;
       const rightColumns = toColumns(tableAlias, otherClass);
       const rel: TableRel<T, any> = Object.assign(rightColumns, {
@@ -72,7 +83,7 @@ export function table<T, Rels extends RelsTemplate<T>>(
 }
 
 // A utility to define relationship type safely.
-export const to = <B>(
-  klass: ModelClass<B>,
-  col: FieldNames<B>
-): [ModelClass<B>, FieldNames<B>] => [klass, col];
+export const to = <B, P extends FieldNames<B>>(
+  model: ModelClass<B>,
+  column: P
+): RelsTo<B, B[P]> => ({ model, column });
