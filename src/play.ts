@@ -37,7 +37,7 @@ class Comment {
   };
 
   readonly id: number | null = null;
-  author_id: number = 0;
+  commenter_id: number = 0;
   content: string = '';
 }
 
@@ -47,7 +47,7 @@ const t = {
   users: table(User, {
     rels: {
       posts: ['id', to(Post, 'author_id')],
-      comments: ['id', to(Comment, 'author_id')],
+      comments: ['id', to(Comment, 'commenter_id')],
     },
   }),
   posts: table(Post, {
@@ -58,12 +58,10 @@ const t = {
   }),
   comments: table(Comment, {
     rels: {
-      authro: ['author_id', to(User, 'id')],
+      commenter: ['commenter_id', to(User, 'id')],
     },
   }),
 };
-
-console.log(t);
 
 const withDb = (knex: Knex) => async (proc: Function) => {
   try {
@@ -88,24 +86,25 @@ withDb(knex)(async (knex: Knex) => {
     .select(t.users.user_name, t.users.posts.$all(), t.users.created_at, t.users.$all());
 
   const result = await q.load(knex);
-  console.log(result);
+  console.log(result[0]);
   console.log('----------------');
 
   let users = await t.users.$query().load(knex);
-  console.log(users);
-  console.log(users[0].greet());
+  console.log(users[0]);
   console.log('----------------');
-
-  const rs = await t.users.$loadRels([], t.users.posts, t.users.comments);
-  console.log(rs);
-  // const rs2 = await t.posts.$loadRels([], t.posts.tmp, t.posts.author)
-  // console.log(rs2)
 
   let result2 = await t.users
     .$query()
     .innerJoin(t.users.posts)
     .load(knex);
-  console.log(result2);
+  console.log(result2[0]);
+
+  const rs = await t.users.$rels(t.users.posts, t.users.comments).loadMaps(users, knex);
+  console.log(rs);
+  // const rs2 = await t.posts.$loadRels(knex, posts, t.posts.tmp, t.posts.author);
+  // console.log(rs2);
+
+  console.log('----end-----');
 });
 
 // TODO: 次は fromRel の実現性を確認する。

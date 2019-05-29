@@ -2,14 +2,12 @@ import { ModelClass, FieldNames } from './model';
 import { Columns, AllColumns, toColumns, Column } from './column';
 import { AnyRelsDef, RelsTemplate, RelsDef, TableRel, RelsTo } from './tableRel';
 import { QueryBuilder, newQueryDef } from './queryBuilder';
+import { RelationLoader } from './relationLoader';
 
 export interface TableActions<T> {
   $query(): QueryBuilder<T, T, T>;
   $all(): AllColumns<T>;
-  $loadRels<RS extends TableRel<T, any>[]>(
-    records: T[],
-    ...rels: RS
-  ): Promise<LoadedRels<T, RS>>;
+  $rels<RS extends TableRel<T, any>[]>(...rels: RS): RelationLoader<T, RS>;
 }
 
 export type LoadedRels<T, RS> = {
@@ -24,19 +22,9 @@ const newTableActions = <T>(model: ModelClass<T>): TableActions<T> => {
     $all() {
       return new AllColumns(model.tyql.table, model);
     },
-    $loadRels<RS extends TableRel<T, any>[]>(
-      records: T[],
-      ...rels: RS
-    ): Promise<LoadedRels<T, RS>> {
-      console.log(records, rels);
 
-      // const promises = rels.map(rel => {
-      //   const key = rel.$leftCol.fieldName;
-      //   const values = records.map(r => r[key as keyof T]);
-      //   const q = new QueryBuilder<any, any, any>(newQueryDef(rel.$rightCol.model))
-      // });
-
-      return null as any; // TODO
+    $rels<RS extends TableRel<T, any>[]>(...rels: RS): RelationLoader<T, RS> {
+      return new RelationLoader(rels);
     },
   };
 };

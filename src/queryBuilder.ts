@@ -5,19 +5,23 @@ import { AllColumns, Column } from './column';
 
 type Selectable<Models> = AllColumns<Models> | Column<Models, any>;
 
+type RawFunc = (knex: Knex.QueryBuilder) => Knex.QueryBuilder;
+
 export type QueryDef<Models> = {
   from: string;
   models: Set<ModelClass<Models>>;
   defaultSelect: AllColumns<any>[];
   select: Selectable<any>[] | null;
   innerJoins: TableRel<any, any>[];
+  whereRaw?: RawFunc[];
 };
 
-export const newQueryDef = <T>(clazz: ModelClass<T>): QueryDef<T> => {
+export const newQueryDef = <T>(clazz: ModelClass<T>, fromAs?: string): QueryDef<T> => {
+  const fromTable = fromAs ? `${clazz.tyql.table} AS ${fromAs}` : clazz.tyql.table;
   return {
-    from: clazz.tyql.table,
+    from: fromTable,
     models: new Set([clazz]),
-    defaultSelect: [new AllColumns(clazz.tyql.table, clazz)],
+    defaultSelect: [new AllColumns(fromAs || clazz.tyql.table, clazz)],
     select: null,
     innerJoins: [],
   };
@@ -49,6 +53,14 @@ export class QueryBuilder<From, R, Models> {
     return new QueryBuilder(this.queryDef);
   }
 
+  whereRaw(f: RawFunc): QueryBuilder<From, R, Models> {
+    if (this.queryDef.whereRaw == null) {
+      this.queryDef.whereRaw = [];
+    }
+    this.queryDef.whereRaw.push(f);
+    return this;
+  }
+
   // XXX:
   // TODO: Return value[] instead of [value[]] when result has 1 column.
   async load(conn: Knex): Promise<ResultRowType<R>[]> {
@@ -58,8 +70,6 @@ export class QueryBuilder<From, R, Models> {
 
     // TODO: Adjust options for RDB. This options is only for PostgreSQL.
     const rows = await query.options({ rowMode: 'array' });
-    console.log(rows);
-    console.log('--------------------');
 
     return mapResults(this.queryDef, rows);
   }
@@ -73,7 +83,6 @@ const constructQuery = (
   knex: Knex.QueryBuilder,
   def: QueryDef<any>
 ): Knex.QueryBuilder => {
-  console.log(def);
   const cols = getColumnIdentifiers(def.select || def.defaultSelect);
 
   def.innerJoins.forEach(rel => {
@@ -83,6 +92,10 @@ const constructQuery = (
       rel.$leftCol.identifier()
     );
   });
+
+  if (def.whereRaw) {
+    knex = def.whereRaw.reduce((kn, f) => f(kn), knex);
+  }
 
   return knex.select(...cols).from(def.from);
 };
