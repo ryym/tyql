@@ -27,14 +27,12 @@ export const newQueryDef = <T>(clazz: ModelClass<T>, fromAs?: string): QueryDef<
   };
 };
 
-export class QueryBuilder<From, R, Models> {
-  _phantom?: ModelClass<From>;
-
+export class QueryBuilder<R, Models> {
   constructor(private queryDef: QueryDef<Models>) {}
 
   innerJoin<A extends Models, B>(
     rel: TableRel<A, B>
-  ): QueryBuilder<From, ToRowType<R, B>, Models | B> {
+  ): QueryBuilder<ToRowType<R, B>, Models | B> {
     const queryDef: QueryDef<Models | B> = { ...this.queryDef };
     queryDef.defaultSelect.push(rel.$all());
     queryDef.models.add(rel.$rightCol.model);
@@ -44,7 +42,7 @@ export class QueryBuilder<From, R, Models> {
 
   select<CS extends (AllColumns<Models> | Column<Models, any>)[]>(
     ...cols: CS
-  ): QueryBuilder<From, Select<ValuesOf<CS>>, Models> {
+  ): QueryBuilder<Select<ValuesOf<CS>>, Models> {
     const select: Selectable<Models>[] = [];
     cols.forEach(col => {
       select.push(col);
@@ -53,7 +51,7 @@ export class QueryBuilder<From, R, Models> {
     return new QueryBuilder(this.queryDef);
   }
 
-  whereRaw(f: RawFunc): QueryBuilder<From, R, Models> {
+  whereRaw(f: RawFunc): QueryBuilder<R, Models> {
     if (this.queryDef.whereRaw == null) {
       this.queryDef.whereRaw = [];
     }

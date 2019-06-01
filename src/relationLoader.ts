@@ -9,7 +9,7 @@ export class RelationLoader<T, RS extends TableRel<T, any>[]> {
     const queries = this.rels.map(rel => {
       const key = rel.$leftCol.fieldName;
       const values = records.map(r => r[key as keyof T]);
-      const q = new QueryBuilder<any, any, any>(
+      const q = new QueryBuilder<any, any>(
         newQueryDef(rel.$rightCol.model, rel.$rightCol.tableName)
       );
       return q.whereRaw(kn => kn.whereIn(rel.$rightCol.identifier(), values as any[]));

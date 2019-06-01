@@ -5,7 +5,7 @@ import { QueryBuilder, newQueryDef } from './queryBuilder';
 import { RelationLoader } from './relationLoader';
 
 export interface TableActions<T> {
-  $query(): QueryBuilder<T, T, T>;
+  $query(): QueryBuilder<T, T>;
   $all(): AllColumns<T>;
   $rels<RS extends TableRel<T, any>[]>(...rels: RS): RelationLoader<T, RS>;
 }
@@ -17,7 +17,7 @@ export type LoadedRels<T, RS> = {
 const newTableActions = <T>(model: ModelClass<T>): TableActions<T> => {
   return {
     $query() {
-      return new QueryBuilder<T, T, T>(newQueryDef(model));
+      return new QueryBuilder<T, T>(newQueryDef(model));
     },
     $all() {
       return new AllColumns(model.tyql.table, model);
