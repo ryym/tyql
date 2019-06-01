@@ -1,10 +1,10 @@
-import { Columns, AllColumns, Column } from './column';
+import { Columns, ColumnList, Column } from './column';
 import { ModelClass, FieldNames } from './model';
 
 export type TableRel<A, B, V = any> = Columns<B> & {
   $leftCol: Column<A, V>;
   $rightCol: Column<B, V>;
-  $all(): AllColumns<B>;
+  $all(): ColumnList<B>;
 };
 
 export type RelsTo<T, V> = {

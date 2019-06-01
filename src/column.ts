@@ -27,7 +27,7 @@ export class Column<T, V> {
 
 export type Columns<T> = { readonly [K in keyof Fields<T>]: Column<T, T[K]> };
 
-export class AllColumns<T> {
+export class ColumnList<T> {
   readonly columns: Column<T, any>[];
 
   constructor(private readonly tableName: string, readonly model: ModelClass<T>) {

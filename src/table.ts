@@ -1,12 +1,12 @@
 import { ModelClass, FieldNames } from './model';
-import { Columns, AllColumns, toColumns, Column } from './column';
+import { Columns, ColumnList, toColumns, Column } from './column';
 import { AnyRelsDef, RelsTemplate, RelsDef, TableRel, RelsTo } from './tableRel';
 import { QueryBuilder, newQueryDef } from './queryBuilder';
 import { RelationLoader } from './relationLoader';
 
 export interface TableActions<T> {
   $query(): QueryBuilder<T, T>;
-  $all(): AllColumns<T>;
+  $all(): ColumnList<T>;
   $rels<RS extends TableRel<T, any>[]>(...rels: RS): RelationLoader<T, RS>;
 }
 
@@ -20,7 +20,7 @@ const newTableActions = <T>(model: ModelClass<T>): TableActions<T> => {
       return new QueryBuilder<T, T>(newQueryDef(model));
     },
     $all() {
-      return new AllColumns(model.tyql.table, model);
+      return new ColumnList(model.tyql.table, model);
     },
 
     $rels<RS extends TableRel<T, any>[]>(...rels: RS): RelationLoader<T, RS> {
@@ -58,7 +58,7 @@ export function table<T, Rels extends RelsTemplate<T>>(
         }),
         $left: clazz,
         $right: otherClass,
-        $all: () => new AllColumns(tableAlias, otherClass),
+        $all: () => new ColumnList(tableAlias, otherClass),
       });
       rls[name] = rel;
       return rls;

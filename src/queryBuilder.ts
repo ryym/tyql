@@ -1,16 +1,16 @@
 import * as Knex from 'knex';
 import { ModelClass } from './model';
 import { TableRel } from './tableRel';
-import { AllColumns, Column } from './column';
+import { ColumnList, Column } from './column';
 
-type Selectable<Models> = AllColumns<Models> | Column<Models, any>;
+type Selectable<Models> = ColumnList<Models> | Column<Models, any>;
 
 type RawFunc = (knex: Knex.QueryBuilder) => Knex.QueryBuilder;
 
 export type QueryDef<Models> = {
   from: string;
   models: Set<ModelClass<Models>>;
-  defaultSelect: AllColumns<any>[];
+  defaultSelect: ColumnList<any>[];
   select: Selectable<any>[] | null;
   innerJoins: TableRel<any, any>[];
   whereRaw?: RawFunc[];
@@ -21,7 +21,7 @@ export const newQueryDef = <T>(clazz: ModelClass<T>, fromAs?: string): QueryDef<
   return {
     from: fromTable,
     models: new Set([clazz]),
-    defaultSelect: [new AllColumns(fromAs || clazz.tyql.table, clazz)],
+    defaultSelect: [new ColumnList(fromAs || clazz.tyql.table, clazz)],
     select: null,
     innerJoins: [],
   };
@@ -40,7 +40,7 @@ export class QueryBuilder<R, Models> {
     return new QueryBuilder(queryDef);
   }
 
-  select<CS extends (AllColumns<Models> | Column<Models, any>)[]>(
+  select<CS extends (ColumnList<Models> | Column<Models, any>)[]>(
     ...cols: CS
   ): QueryBuilder<Select<ValuesOf<CS>>, Models> {
     const select: Selectable<Models>[] = [];
@@ -101,7 +101,7 @@ const constructQuery = (
 const getColumnIdentifiers = (select: Selectable<any>[]): string[] => {
   return select.reduce(
     (cols, sel) => {
-      if (sel instanceof AllColumns) {
+      if (sel instanceof ColumnList) {
         return cols.concat(sel.columns.map(c => c.identifier()));
       } else {
         cols.push(sel.identifier());
@@ -119,7 +119,7 @@ const mapResults = ({ select, defaultSelect }: QueryDef<any>, rows: any[][]): an
       let rowIdx = 0;
       let rawRowIdx = 0;
       select.forEach(sel => {
-        if (sel instanceof AllColumns) {
+        if (sel instanceof ColumnList) {
           const m = sel.model.tyql.template();
           sel.columns.forEach(col => {
             m[col.fieldName] = rawRow[rawRowIdx++];
@@ -159,7 +159,7 @@ const mapResults = ({ select, defaultSelect }: QueryDef<any>, rows: any[][]): an
 
 type ValueOf<C> = C extends Column<any, infer V>
   ? V
-  : C extends AllColumns<infer T>
+  : C extends ColumnList<infer T>
   ? T
   : never;
 type ValuesOf<T> = { [P in keyof T]: ValueOf<T[P]> };
