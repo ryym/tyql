@@ -1,6 +1,6 @@
-import * as Knex from 'knex';
 import { table, to } from './tyql';
 import { Selectable, Expr } from './types';
+import { Connection } from './conn';
 
 class User {
   static tyql = {
@@ -64,29 +64,33 @@ const t = {
   }),
 };
 
-const withDb = (knex: Knex) => async (proc: Function) => {
+const withDb = (conn: Connection) => async (proc: Function) => {
   try {
-    await proc(knex);
+    await proc(conn);
   } finally {
-    knex.destroy();
+    conn.destroy();
   }
 };
 
-const knex = Knex({
+const knexConfig = {
   client: 'pg',
   connection: {
     host: 'localhost',
     user: 'ryu',
     database: 'tyql_sample',
   },
-});
-withDb(knex)(async (knex: Knex) => {
+};
+
+const conn = new Connection(knexConfig);
+
+withDb(conn)(async (conn: Connection) => {
+  //
+
   let q = t.users
     .$query() //.select(t.users.email);
     .innerJoin(t.users.posts)
     .select(t.users.user_name, t.users.posts.$all(), t.users.created_at, t.users.$all());
-
-  const result = await q.load(knex);
+  const result = await q.load(conn);
   console.log(result[0]);
   console.log('----------------');
 
@@ -98,20 +102,18 @@ withDb(knex)(async (knex: Knex) => {
   hoge(t.users.id.eq(t.users.id).eq(t.users.id.eq(t.users.id)));
   // hoge(t.comments.id)
 
-  let users = await t.users.$query().load(knex);
+  let users = await t.users.$query().load(conn);
   console.log(users[0]);
   console.log('----------------');
 
   let result2 = await t.users
     .$query()
     .innerJoin(t.users.posts)
-    .load(knex);
+    .load(conn);
   console.log(result2[0]);
 
-  const rs = await t.users.$rels(t.users.posts, t.users.comments).loadMaps(users, knex);
+  const rs = await t.users.$rels(t.users.posts, t.users.comments).loadMaps(users, conn);
   console.log(rs);
-  // const rs2 = await t.posts.$loadRels(knex, posts, t.posts.tmp, t.posts.author);
-  // console.log(rs2);
 
   console.log('----end-----');
 });

@@ -3,6 +3,7 @@ import { TableRel } from './tableRel';
 import { ColumnList, Column } from './column';
 import { Query, RawFunc, constructQuery } from './query';
 import { Selectable, QueryTable, Orderer, PredExpr, Expr } from './types';
+import { Connection } from './conn';
 
 export interface QueryBuilder<Result, Models> {
   select<Sels extends Selectable<Models>[]>(
@@ -19,9 +20,7 @@ export interface QueryBuilder<Result, Models> {
   orderBy(...ords: Orderer[]): QueryBuilder<Result, Models>;
   limit(n: number): QueryBuilder<Result, Models>;
   offset(n: number): QueryBuilder<Result, Models>;
-
-  // TODO: Hide knex as implementation detail.
-  load(knex: Knex): Promise<ResultRowType<Result>[]>;
+  load(conn: Connection): Promise<ResultRowType<Result>[]>;
 }
 
 export type Select<V> = { selects: V };
@@ -75,8 +74,8 @@ export class KnexQueryBuilder<R, Ms> implements QueryBuilder<R, Ms> {
 
   // XXX:
   // TODO: Return value[] instead of [value[]] when result has 1 column.
-  async load(conn: Knex): Promise<ResultRowType<R>[]> {
-    const query = constructQuery(conn as any, this.queryDef);
+  async load(conn: Connection): Promise<ResultRowType<R>[]> {
+    const query = constructQuery(conn, this.queryDef);
     console.log(query.toString());
 
     // TODO: Adjust options for RDB. This options is only for PostgreSQL.

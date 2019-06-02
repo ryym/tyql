@@ -1,12 +1,12 @@
-import * as Knex from 'knex';
 import { TableRel } from './tableRel';
 import { KnexQueryBuilder } from './queryBuilder';
 import { newQuery } from './query';
+import { Connection } from './conn';
 
 export class RelationLoader<T, RS extends TableRel<T, any>[]> {
   constructor(private readonly rels: RS) {}
 
-  async loadMaps(records: T[], knex: Knex): Promise<RelsMap<T, RS>> {
+  async loadMaps(records: T[], conn: Connection): Promise<RelsMap<T, RS>> {
     const queries = this.rels.map(rel => {
       const key = rel.$leftCol.fieldName;
       const values = records.map(r => r[key as keyof T]);
@@ -18,7 +18,7 @@ export class RelationLoader<T, RS extends TableRel<T, any>[]> {
 
     // TODO: Sort by key column.
 
-    const results = await Promise.all(queries.map(q => q.load(knex)));
+    const results = await Promise.all(queries.map(q => q.load(conn)));
 
     return results.map((rows, i) => {
       const rel = this.rels[i];

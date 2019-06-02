@@ -3,6 +3,7 @@ import { ModelClass } from './model';
 import { ColumnList, Column } from './column';
 import { Selectable } from './types';
 import { TableRel } from './tableRel';
+import { Connection } from './conn';
 
 export const newQuery = <T>(clazz: ModelClass<T>, fromAs?: string): Query<T> => {
   const fromTable = fromAs ? `${clazz.tyql.table} AS ${fromAs}` : clazz.tyql.table;
@@ -26,11 +27,9 @@ export type Query<Models> = {
   whereRaw?: RawFunc[];
 };
 
-export const constructQuery = (
-  knex: Knex.QueryBuilder,
-  q: Query<any>
-): Knex.QueryBuilder => {
+export const constructQuery = (conn: Connection, q: Query<any>): Knex.QueryBuilder => {
   const cols = getColumnIdentifiers(q.select || q.defaultSelect);
+  let knex = conn.queryBuilder();
 
   q.innerJoins.forEach(rel => {
     knex = knex.innerJoin(
