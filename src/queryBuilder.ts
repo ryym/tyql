@@ -1,57 +1,71 @@
 import * as Knex from 'knex';
-import { ModelClass } from './model';
 import { TableRel } from './tableRel';
 import { ColumnList, Column } from './column';
+import { Query, RawFunc, constructQuery } from './query';
+import { Selectable, QueryTable, Orderer, PredExpr, Expr } from './types';
 
-type Selectable<Models> = ColumnList<Models> | Column<Models, any>;
+export interface QueryBuilder<Result, Models> {
+  select<Sels extends Selectable<Models>[]>(
+    ...sels: Sels
+  ): QueryBuilder<Select<ValuesOf<Sels>>, Models>;
+  innerJoin<M1 extends Models, M2>(
+    join: TableRel<M1, M2>
+  ): QueryBuilder<ToRowType<Result, M2>, Models | M2>;
+  where(...preds: PredExpr<any>[]): QueryBuilder<Result, Models>;
+  groupBy(...exprs: Expr<any, any>[]): QueryBuilder<Result, Models>;
+  having(...preds: PredExpr<any>[]): QueryBuilder<Result, Models>;
 
-type RawFunc = (knex: Knex.QueryBuilder) => Knex.QueryBuilder;
+  as(alias: string): QueryTable;
+  orderBy(...ords: Orderer[]): QueryBuilder<Result, Models>;
+  limit(n: number): QueryBuilder<Result, Models>;
+  offset(n: number): QueryBuilder<Result, Models>;
 
-export type QueryDef<Models> = {
-  from: string;
-  models: Set<ModelClass<Models>>;
-  defaultSelect: ColumnList<any>[];
-  select: Selectable<any>[] | null;
-  innerJoins: TableRel<any, any>[];
-  whereRaw?: RawFunc[];
-};
+  // TODO: Hide knex as implementation detail.
+  load(knex: Knex): Promise<ResultRowType<Result>[]>;
+}
 
-export const newQueryDef = <T>(clazz: ModelClass<T>, fromAs?: string): QueryDef<T> => {
-  const fromTable = fromAs ? `${clazz.tyql.table} AS ${fromAs}` : clazz.tyql.table;
-  return {
-    from: fromTable,
-    models: new Set([clazz]),
-    defaultSelect: [new ColumnList(fromAs || clazz.tyql.table, clazz)],
-    select: null,
-    innerJoins: [],
-  };
-};
+export type Select<V> = { selects: V };
 
-export class QueryBuilder<R, Models> {
-  constructor(private queryDef: QueryDef<Models>) {}
+type ValueOf<C> = C extends Column<any, infer V>
+  ? V
+  : C extends ColumnList<infer T>
+  ? T
+  : never;
+type ValuesOf<T> = { [P in keyof T]: ValueOf<T[P]> };
 
-  innerJoin<A extends Models, B>(
-    rel: TableRel<A, B>
-  ): QueryBuilder<ToRowType<R, B>, Models | B> {
-    const queryDef: QueryDef<Models | B> = { ...this.queryDef };
+type ToRowType<A, B> = A extends Select<infer V>
+  ? V
+  : A extends [infer T1, infer T2]
+  ? [T1, T2, B]
+  : A extends [infer T1, infer T2, infer T3]
+  ? [T1, T2, T3, B]
+  : [A, B];
+
+type ResultRowType<R> = R extends Select<infer V> ? V : R;
+
+export class KnexQueryBuilder<R, Ms> implements QueryBuilder<R, Ms> {
+  constructor(private queryDef: Query<Ms>) {}
+
+  innerJoin<A extends Ms, B>(rel: TableRel<A, B>): QueryBuilder<ToRowType<R, B>, Ms | B> {
+    const queryDef: Query<Ms | B> = { ...this.queryDef };
     queryDef.defaultSelect.push(rel.$all());
     queryDef.models.add(rel.$rightCol.model);
     queryDef.innerJoins.push(rel);
-    return new QueryBuilder(queryDef);
+    return new KnexQueryBuilder(queryDef);
   }
 
-  select<CS extends (ColumnList<Models> | Column<Models, any>)[]>(
-    ...cols: CS
-  ): QueryBuilder<Select<ValuesOf<CS>>, Models> {
-    const select: Selectable<Models>[] = [];
+  select<Sels extends Selectable<Ms>[]>(
+    ...cols: Sels
+  ): QueryBuilder<Select<ValuesOf<Sels>>, Ms> {
+    const select: Selectable<Ms>[] = [];
     cols.forEach(col => {
       select.push(col);
     });
     this.queryDef.select = select;
-    return new QueryBuilder(this.queryDef);
+    return new KnexQueryBuilder<Select<ValuesOf<Sels>>, Ms>(this.queryDef);
   }
 
-  whereRaw(f: RawFunc): QueryBuilder<R, Models> {
+  whereRaw(f: RawFunc): KnexQueryBuilder<R, Ms> {
     if (this.queryDef.whereRaw == null) {
       this.queryDef.whereRaw = [];
     }
@@ -64,7 +78,6 @@ export class QueryBuilder<R, Models> {
   async load(conn: Knex): Promise<ResultRowType<R>[]> {
     const query = constructQuery(conn as any, this.queryDef);
     console.log(query.toString());
-    // return null as any;
 
     // TODO: Adjust options for RDB. This options is only for PostgreSQL.
     const rows = await query.options({ rowMode: 'array' });
@@ -73,46 +86,33 @@ export class QueryBuilder<R, Models> {
   }
 
   async first(_conn: Knex): Promise<ResultRowType<R>> {
-    throw new Error('not implemented yet');
+    throw new Error('unimplemented');
+  }
+
+  where(..._preds: PredExpr<any>[]): QueryBuilder<R, Ms> {
+    throw new Error('unimplemented');
+  }
+  groupBy(..._exprs: Expr<any, any>[]): QueryBuilder<R, Ms> {
+    throw new Error('unimplemented');
+  }
+  having(..._preds: PredExpr<any>[]): QueryBuilder<R, Ms> {
+    throw new Error('unimplemented');
+  }
+  orderBy(..._ords: Orderer[]): QueryBuilder<R, Ms> {
+    throw new Error('unimplemented');
+  }
+  limit(_n: number): QueryBuilder<R, Ms> {
+    throw new Error('unimplemented');
+  }
+  offset(_n: number): QueryBuilder<R, Ms> {
+    throw new Error('unimplemented');
+  }
+  as(_alias: string): QueryTable {
+    throw new Error('unimplemented');
   }
 }
 
-const constructQuery = (
-  knex: Knex.QueryBuilder,
-  def: QueryDef<any>
-): Knex.QueryBuilder => {
-  const cols = getColumnIdentifiers(def.select || def.defaultSelect);
-
-  def.innerJoins.forEach(rel => {
-    knex = knex.innerJoin(
-      `${rel.$rightCol.model.tyql.table} AS ${rel.$rightCol.tableName}`,
-      rel.$rightCol.identifier(),
-      rel.$leftCol.identifier()
-    );
-  });
-
-  if (def.whereRaw) {
-    knex = def.whereRaw.reduce((kn, f) => f(kn), knex);
-  }
-
-  return knex.select(...cols).from(def.from);
-};
-
-const getColumnIdentifiers = (select: Selectable<any>[]): string[] => {
-  return select.reduce(
-    (cols, sel) => {
-      if (sel instanceof ColumnList) {
-        return cols.concat(sel.columns.map(c => c.identifier()));
-      } else {
-        cols.push(sel.identifier());
-        return cols;
-      }
-    },
-    [] as string[]
-  );
-};
-
-const mapResults = ({ select, defaultSelect }: QueryDef<any>, rows: any[][]): any => {
+const mapResults = ({ select, defaultSelect }: Query<any>, rows: any[][]): any => {
   if (select != null) {
     return rows.map(rawRow => {
       const row: any[] = [];
@@ -156,21 +156,3 @@ const mapResults = ({ select, defaultSelect }: QueryDef<any>, rows: any[][]): an
     });
   }
 };
-
-type ValueOf<C> = C extends Column<any, infer V>
-  ? V
-  : C extends ColumnList<infer T>
-  ? T
-  : never;
-type ValuesOf<T> = { [P in keyof T]: ValueOf<T[P]> };
-export type Select<V> = { selects: V };
-
-type ToRowType<A, B> = A extends Select<infer V>
-  ? V
-  : A extends [infer T1, infer T2]
-  ? [T1, T2, B]
-  : A extends [infer T1, infer T2, infer T3]
-  ? [T1, T2, T3, B]
-  : [A, B];
-
-type ResultRowType<R> = R extends Select<infer V> ? V : R;

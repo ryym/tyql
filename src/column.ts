@@ -1,4 +1,6 @@
 import { ModelClass, Fields } from './model';
+import { Selectable } from './types';
+import { Ops } from './ops';
 
 export type ColumnConfig = {
   tableName: string;
@@ -6,33 +8,39 @@ export type ColumnConfig = {
   fieldName: string;
 };
 
-export class Column<T, V> {
+export class Column<M, V> extends Ops<V, M> {
   readonly tableName: string;
   readonly columnName: string;
   readonly fieldName: string;
 
-  constructor(readonly model: ModelClass<T>, config: ColumnConfig) {
+  constructor(readonly model: ModelClass<M>, config: ColumnConfig) {
+    super();
     this.tableName = config.tableName;
     this.columnName = config.columnName;
     this.fieldName = config.fieldName;
   }
 
+  modelClass(): ModelClass<M> {
+    return this.model;
+  }
+
   identifier(): string {
     return `${this.tableName}.${this.columnName}`;
   }
-
-  // TODO: Add operators.
-  eq(_val: V) {}
 }
 
 export type Columns<T> = { readonly [K in keyof Fields<T>]: Column<T, T[K]> };
 
-export class ColumnList<T> {
-  readonly columns: Column<T, any>[];
+export class ColumnList<M> implements Selectable<M> {
+  readonly columns: Column<M, any>[];
 
-  constructor(private readonly tableName: string, readonly model: ModelClass<T>) {
+  constructor(private readonly tableName: string, readonly model: ModelClass<M>) {
     const columns = toColumns(this.tableName, this.model);
     this.columns = Object.values(columns);
+  }
+
+  modelClass(): ModelClass<M> {
+    return this.model;
   }
 }
 
