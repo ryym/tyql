@@ -1,9 +1,11 @@
 import * as Knex from 'knex';
 import { ModelClass } from './model';
 import { ColumnList, Column } from './column';
-import { Selectable } from './types';
 import { TableRel } from './tableRel';
 import { Connection } from './conn';
+import { unreachable } from './util';
+
+export type Selectable<M> = Column<M, any> | ColumnList<M>;
 
 export const newQuery = <T>(clazz: ModelClass<T>, fromAs?: string): Query<T> => {
   const fromTable = fromAs ? `${clazz.tyql.table} AS ${fromAs}` : clazz.tyql.table;
@@ -49,14 +51,15 @@ export const constructQuery = (conn: Connection, q: Query<any>): Knex.QueryBuild
 const getColumnIdentifiers = (select: Selectable<any>[]): string[] => {
   return select.reduce(
     (cols, sel) => {
-      if (sel instanceof ColumnList) {
-        return cols.concat(sel.columns.map(c => c.identifier()));
+      switch (sel.$type) {
+        case 'COLUMN':
+          cols.push(sel.identifier());
+          return cols;
+        case 'COLUMN_LIST':
+          return cols.concat(sel.columns.map(c => c.identifier()));
+        default:
+          return unreachable(sel);
       }
-      if (sel instanceof Column) {
-        cols.push(sel.identifier());
-        return cols;
-      }
-      throw new Error(`UNREACHABLE: Unknown Selectable value: ${sel}`);
     },
     [] as string[]
   );

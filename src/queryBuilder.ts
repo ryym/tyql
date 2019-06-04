@@ -1,8 +1,8 @@
 import * as Knex from 'knex';
 import { TableRel } from './tableRel';
 import { ColumnList, Column } from './column';
-import { Query, RawFunc, constructQuery } from './query';
-import { Selectable, QueryTable, Orderer, PredExpr, Expr } from './types';
+import { Query, RawFunc, constructQuery, Selectable } from './query';
+import { QueryTable, Orderer, PredExpr, Expr } from './types';
 import { Connection } from './conn';
 
 export interface QueryBuilder<Result, Models> {

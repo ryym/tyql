@@ -1,5 +1,4 @@
 import { table, to } from './tyql';
-import { Selectable, Expr } from './types';
 import { Connection } from './conn';
 
 class User {
@@ -93,14 +92,6 @@ withDb(conn)(async (conn: Connection) => {
   const result = await q.load(conn);
   console.log(result[0]);
   console.log('----------------');
-
-  function hoge(_v: Selectable<User>) {}
-  hoge(t.users.id);
-  let a: Expr<number | null, User> = t.users.id;
-  let b = t.users.id.eq(t.users.id);
-  console.log(a, b);
-  hoge(t.users.id.eq(t.users.id).eq(t.users.id.eq(t.users.id)));
-  // hoge(t.comments.id)
 
   let users = await t.users.$query().load(conn);
   console.log(users[0]);

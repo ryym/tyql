@@ -1,5 +1,5 @@
 import { ModelClass, Fields } from './model';
-import { Selectable } from './types';
+import { MayHaveModel } from './types';
 import { Ops } from './ops';
 
 export type ColumnConfig = {
@@ -9,6 +9,7 @@ export type ColumnConfig = {
 };
 
 export class Column<M, V> extends Ops<V, M> {
+  readonly $type = 'COLUMN';
   readonly tableName: string;
   readonly columnName: string;
   readonly fieldName: string;
@@ -31,7 +32,8 @@ export class Column<M, V> extends Ops<V, M> {
 
 export type Columns<T> = { readonly [K in keyof Fields<T>]: Column<T, T[K]> };
 
-export class ColumnList<M> implements Selectable<M> {
+export class ColumnList<M> implements MayHaveModel<M> {
+  readonly $type = 'COLUMN_LIST';
   readonly columns: Column<M, any>[];
 
   constructor(private readonly tableName: string, readonly model: ModelClass<M>) {

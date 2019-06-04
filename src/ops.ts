@@ -12,6 +12,9 @@ export abstract class Ops<V, M> implements Expr<V, M> {
     return new OpInfix<boolean, M | M2>(this, Op.EQ, val);
   }
 
+  // 本来は特定の型でしか呼び出せないはずだけど、
+  // そこまでやると RDB ごとにも違いそうだし無視する。
+  // SQL のシンタックス的に問題なければひとまずOK。
   add<M2>(val: Expr<V, M2>): Expr<V, M | M2> {
     return new OpInfix<V, M | M2>(this, Op.ADD, val);
   }
