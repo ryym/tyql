@@ -25,7 +25,7 @@ export interface QueryBuilder<Result, Models> {
 
 export type Select<V> = { selects: V };
 
-type ValueOf<C> = C extends Column<any, infer V>
+type ValueOf<C> = C extends Column<infer V, any>
   ? V
   : C extends ColumnList<infer T>
   ? T

@@ -8,7 +8,7 @@ export type ColumnConfig = {
   fieldName: string;
 };
 
-export class Column<M, V> extends Ops<V, M> {
+export class Column<V, M> extends Ops<V, M> {
   readonly $type = 'COLUMN';
   readonly tableName: string;
   readonly columnName: string;
@@ -30,7 +30,7 @@ export class Column<M, V> extends Ops<V, M> {
   }
 }
 
-export type Columns<T> = { readonly [K in keyof Fields<T>]: Column<T, T[K]> };
+export type Columns<T> = { readonly [K in keyof Fields<T>]: Column<T[K], T> };
 
 export class ColumnList<M> implements MayHaveModel<M> {
   readonly $type = 'COLUMN_LIST';

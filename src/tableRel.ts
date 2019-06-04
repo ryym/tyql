@@ -2,8 +2,8 @@ import { Columns, ColumnList, Column } from './column';
 import { ModelClass, FieldNames } from './model';
 
 export type TableRel<A, B, V = any> = Columns<B> & {
-  $leftCol: Column<A, V>;
-  $rightCol: Column<B, V>;
+  $leftCol: Column<V, A>;
+  $rightCol: Column<V, B>;
   $all(): ColumnList<B>;
 };
 

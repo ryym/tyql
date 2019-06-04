@@ -5,7 +5,7 @@ import { TableRel } from './tableRel';
 import { Connection } from './conn';
 import { unreachable } from './util';
 
-export type Selectable<M> = Column<M, any> | ColumnList<M>;
+export type Selectable<M> = Column<any, M> | ColumnList<M>;
 
 export const newQuery = <T>(clazz: ModelClass<T>, fromAs?: string): Query<T> => {
   const fromTable = fromAs ? `${clazz.tyql.table} AS ${fromAs}` : clazz.tyql.table;
