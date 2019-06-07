@@ -9,9 +9,30 @@ import {
 } from './types';
 import { Ops } from './ops';
 
-export interface Table<M> {
+type MethodNames<T> = { [P in keyof T]: T[P] extends Function ? P : never }[keyof T];
+
+export type FieldNames<T> = Exclude<keyof T, MethodNames<T>>;
+
+export type Fields<T> = { [P in FieldNames<T>]: T[P] };
+
+export type FieldNamesOfType<T, V> = {
+  [P in FieldNames<T>]: T[P] extends V | null | undefined ? P : never
+}[FieldNames<T>];
+
+export type ColumnSet<M> = { readonly [K in keyof Fields<M>]: Column<M[K], M> };
+
+export type RelationBuilder<V, M1, M2> = ColumnSet<M2> & {
+  (): TableRel<V, M1, M2>;
+};
+
+type AnyRelationBuilders<M> = {
+  [key: string]: RelationBuilder<any, M, any>;
+};
+
+export type Table<M, Rels extends AnyRelationBuilders<M>> = {
   (): TableActions<M>;
-}
+} & Rels &
+  ColumnSet<M>;
 
 export interface RelationLoader<M, RS extends TableRel<any, M, any>[]> {
   loadMaps(records: M[], conn: Connection): Promise<RelsMap<M, RS>>;

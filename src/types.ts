@@ -128,6 +128,7 @@ export type Selectable<M> = Expr<any, M> | Aliased<any, M> | ColumnList<M>;
 
 export type Joinable<M1, M2> = TableRelBuilder<any, M1, M2> | JoinOn<M2>;
 
+// Perhaps Unnecessary interface?
 export interface QueryBuilder<R, Ms> {
   select<Sels extends Selectable<Ms>[]>(
     ...sels: Sels
@@ -164,15 +165,15 @@ export interface Connection {
 
 export type Select<V> = { selects: V };
 
+export type ValuesOf<T> = { [P in keyof T]: ValueOf<T[P]> };
+
 type ValueOf<S> = S extends ColumnList<infer M>
   ? M
   : S extends Expr<infer V, any>
   ? V
   : never;
 
-type ValuesOf<T> = { [P in keyof T]: ValueOf<T[P]> };
-
-type RowType<A, B> = A extends Select<any>
+export type RowType<A, B> = A extends Select<any>
   ? A
   : A extends [infer R1, infer R2]
   ? [R1, R2, B]
@@ -180,4 +181,4 @@ type RowType<A, B> = A extends Select<any>
   ? [R1, R2, R3, B]
   : [A, B];
 
-type ResultRowType<R> = R extends Select<infer V> ? V : R;
+export type ResultRowType<R> = R extends Select<infer V> ? V : R;

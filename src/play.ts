@@ -1,5 +1,4 @@
-import { TableRelBuilder } from './types';
-import { Column, Table } from './table';
+import { table, rel } from './tableBuilder';
 
 class User {
   static tyql = {
@@ -25,29 +24,24 @@ class Comment {
   constructor(public id: number, public author_id: number, public content: string) {}
 }
 
-export type Users = {
-  id: Column<number, User>;
-  user_name: Column<string, User>;
-  posts: Posts & TableRelBuilder<number, User, Post>;
-  comments: Comments & TableRelBuilder<number, User, Comment>;
-};
-export const Users: Users & Table<User> = null as any;
+export const Users = table(User, {
+  rels: {
+    posts: rel(Post, 'author_id', 'id'),
+    comments: rel(Comment, 'author_id', 'id'),
+  },
+});
 
-export type Posts = {
-  id: Column<number, Post>;
-  author_id: Column<number, Post>;
-  title: Column<string, Post>;
-  author: Users & TableRelBuilder<number, Post, User>;
-};
-export const Posts: Posts & Table<Post> = null as any;
+export const Posts = table(Post, {
+  rels: {
+    author: rel(User, 'id', 'author_id'),
+  },
+});
 
-export type Comments = {
-  id: Column<number, Comment>;
-  author_id: Column<number, Comment>;
-  content: Column<string, Comment>;
-  author: Users & TableRelBuilder<number, Comment, User>;
-};
-export const Comments: Comments & Table<Comment> = null as any;
+export const Comments = table(Comment, {
+  rels: {
+    author: rel(User, 'id', 'author_id'),
+  },
+});
 
 const conn = {
   connection: (): any => null,
