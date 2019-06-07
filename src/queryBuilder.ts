@@ -17,15 +17,11 @@ const unimplemented = (): never => {
 };
 
 export class QueryBuilder<R, Ms> implements IQueryBuilder<R, Ms> {
-  select<Sels extends Selectable<Ms>[]>(
-    ..._sels: Sels
-  ): QueryBuilder<Select<ValuesOf<Sels>>, Ms> {
+  select<Sels extends Selectable<Ms>[]>(..._sels: Sels): QueryBuilder<Select<ValuesOf<Sels>>, Ms> {
     return unimplemented();
   }
 
-  innerJoin<M1 extends Ms, M2>(
-    _join: Joinable<M1, M2>
-  ): QueryBuilder<RowType<R, M2>, Ms | M2> {
+  innerJoin<M1 extends Ms, M2>(_join: Joinable<M1, M2>): QueryBuilder<RowType<R, M2>, Ms | M2> {
     return unimplemented();
   }
 
