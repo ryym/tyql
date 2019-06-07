@@ -11,12 +11,17 @@ import {
   Connection,
   ResultRowType,
 } from './types';
+import { Query } from './query';
 
 const unimplemented = (): never => {
   throw new Error('unimplemented');
 };
 
 export class QueryBuilder<R, Ms> implements IQueryBuilder<R, Ms> {
+  constructor(private readonly query: Query<Ms>) {
+    console.log(this.query);
+  }
+
   select<Sels extends Selectable<Ms>[]>(..._sels: Sels): QueryBuilder<Select<ValuesOf<Sels>>, Ms> {
     return unimplemented();
   }

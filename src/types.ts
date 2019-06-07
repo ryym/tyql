@@ -23,7 +23,9 @@ export enum OpSufix {
 // (and all properties should be readonly)
 
 export interface ColumnExpr<V, M> {
-  _value_phantom: V;
+  // This phantom field is neccesary to hold V. Without this, you can:
+  // `let a: ColumnExpr<string, any> = <ColumnExpr<number, any>>b;`.
+  readonly _value_phantom: V;
   readonly tableName: string;
   readonly columnName: string;
   readonly fieldName: string;

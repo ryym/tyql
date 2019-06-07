@@ -6,6 +6,7 @@ import {
   ColumnList,
   ModelClass,
   Connection,
+  TableRelBuilder,
 } from './types';
 import { Ops } from './ops';
 
@@ -21,9 +22,7 @@ export type FieldNamesOfType<T, V> = {
 
 export type ColumnSet<M> = { readonly [K in keyof Fields<M>]: Column<M[K], M> };
 
-export type RelationBuilder<V, M1, M2> = ColumnSet<M2> & {
-  (): TableRel<V, M1, M2>;
-};
+export type RelationBuilder<V, M1, M2> = ColumnSet<M2> & TableRelBuilder<V, M1, M2>;
 
 type AnyRelationBuilders<M> = {
   [key: string]: RelationBuilder<any, M, any>;
@@ -42,25 +41,39 @@ type RelsMap<T, RS> = {
   [K in keyof RS]: RS[K] extends TableRel<T, infer U, infer V> ? Map<V, U[]> : never
 };
 
-interface TableActions<M> extends QueryBuilder<M, M>, ColumnList<M> {
+export interface TableActions<M> extends QueryBuilder<M, M>, ColumnList<M> {
   columns(): ColumnExpr<any, M>[];
   query(): QueryBuilder<M, M>;
   rels<RS extends TableRel<any, M, any>[]>(...rels: RS): RelationLoader<M, RS>;
 }
 
-const todo = (): any => null;
 export class Column<V, M> extends Ops<V, M> implements ColumnExpr<V, M> {
-  tableName: string = todo();
-  columnName: string = todo();
-  fieldName: string = todo();
-  modelClass: ModelClass<M> = todo();
-  _value_phantom = todo() as V;
+  _value_phantom: V = null as any;
+
+  readonly modelClass: ModelClass<M>;
+  readonly tableName: string;
+  readonly columnName: string;
+  readonly fieldName: string;
+
+  constructor(modelClass: ModelClass<M>, conf: ColumnConfig) {
+    super();
+    this.modelClass = modelClass;
+    this.tableName = conf.tableName;
+    this.columnName = conf.columnName;
+    this.fieldName = conf.fieldName;
+  }
 
   asc(): Ordering<M> {
-    return todo();
+    throw new Error('unimplemented');
   }
 
   desc(): Ordering<M> {
-    return todo();
+    throw new Error('unimplemented');
   }
 }
+
+export type ColumnConfig = {
+  tableName: string;
+  columnName: string;
+  fieldName: string;
+};
