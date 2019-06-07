@@ -19,10 +19,9 @@ export enum OpSufix {
   IS_NULL = 'IS NULL',
 }
 
-// TODO: All interfaces must have unique '$type';
-// (and all properties should be readonly)
-
 export interface ColumnExpr<V, M> {
+  readonly $type: 'COLUMN_EXPR';
+
   // This phantom field is neccesary to hold V. Without this, you can:
   // `let a: ColumnExpr<string, any> = <ColumnExpr<number, any>>b;`.
   readonly _value_phantom: V;
@@ -33,32 +32,38 @@ export interface ColumnExpr<V, M> {
 }
 
 export interface LitExpr<V> {
+  readonly $type: 'LIT_EXPR';
   readonly value: V;
 }
 
 export interface PrefixExpr<V, M> {
+  readonly $type: 'PREFIX_EXPR';
   op: Op;
   expr: Expr<V, M>;
 }
 
 export interface InfixExpr<V, M> {
+  readonly $type: 'INFIX_EXPR';
   left: Expr<V, M>;
   op: Op;
   right: Expr<V, M>;
 }
 
 export interface SufixExpr<V, M> {
+  readonly $type: 'SUFIX_EXPR';
   expr: Expr<V, M>;
   op: Op;
 }
 
 export interface InExpr<V, M> {
+  readonly $type: 'IN_EXPR';
   left: Expr<V, M>;
   right: Expr<V, any>[];
   not: boolean;
 }
 
 export interface BetweenExpr<V, M> {
+  readonly $type: 'BETWEEN_EXPR';
   value: Expr<V, M>;
   start: Expr<V, M>;
   end: Expr<V, M>;
@@ -66,8 +71,8 @@ export interface BetweenExpr<V, M> {
 }
 
 export interface QueryExpr<V> {
+  readonly $type: 'QUERY_EXPR';
   _value?: V; // ??
-  _is_query_expr: true;
 }
 
 export type Expr<V, M> =
@@ -81,12 +86,14 @@ export type Expr<V, M> =
   | QueryExpr<V>;
 
 export interface Aliased<V, M> {
+  readonly $type: 'ALIASED';
   alias: string;
   expr: Expr<V, M>;
 }
 
 // Special interface to bundle multiple columns as one expression.
 export interface ColumnList<M> {
+  readonly $type: 'COLUMN_LIST';
   columns(): ColumnExpr<any, M>[];
 }
 
@@ -114,21 +121,23 @@ export type TableLike = AliasedQuery | SchemaTable<any>;
 export interface TableRel<V, M1, M2> extends ColumnList<M2> {
   leftCol: ColumnExpr<V, M1>;
   rightCol: ColumnExpr<V, M2>;
-  on<U>(expr: Expr<U, any>): JoinOn<M2>;
+  on<U>(expr: Expr<U, any>): TableJoin<M2>;
 }
 
 export interface TableRelBuilder<V, M1, M2> {
+  $type: 'TABLE_REL_BUILDER';
   (): TableRel<V, M1, M2>;
 }
 
-export interface JoinOn<M> {
-  table: TableLike;
+export interface TableJoin<M> {
+  $type: 'TABLE_JOIN';
+  modelClass: ModelClass<M>;
   on: Expr<boolean, M>;
 }
 
 export type Selectable<M> = Expr<any, M> | Aliased<any, M> | ColumnList<M>;
 
-export type Joinable<M1, M2> = TableRelBuilder<any, M1, M2> | JoinOn<M2>;
+export type Joinable<M1, M2> = TableRelBuilder<any, M1, M2> | TableJoin<M2>;
 
 // Perhaps Unnecessary interface?
 export interface QueryBuilder<R, Ms> {

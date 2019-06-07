@@ -96,14 +96,18 @@ const makeRelationBuilders = <M, Rels extends RelsTemplate<M>>(
 
       const builder = (): TableRel<any, M, any> => {
         return {
+          $type: 'COLUMN_LIST',
+          columns: () => Object.values(rightColumns),
           leftCol,
           rightCol,
-          columns: () => Object.values(rightColumns),
           on: null as any, // TODO
         };
       };
       Object.defineProperty(builder, 'name', { value: `${tableAlias}_builder` });
-      (rls as any)[name] = Object.assign(builder, rightColumns);
+      const relBuilder: RelationBuilder<any, M, any> = Object.assign(builder, rightColumns, {
+        $type: 'TABLE_REL_BUILDER' as const,
+      });
+      (rls as any)[name] = relBuilder;
       return rls;
     },
     {} as RelationBuilders<M, Rels>
@@ -116,6 +120,7 @@ const makeTableActions = <M>(modelClass: ModelClass<M>, columns: ColumnSet<M>): 
   };
   const query = () => new QueryBuilder<M, M>(newQuery(modelClass));
   return {
+    $type: 'COLUMN_LIST',
     columns: () => Object.values(columns),
     rels: () => todo(),
     as: () => todo(),

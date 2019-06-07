@@ -49,6 +49,7 @@ export interface TableActions<M> extends QueryBuilder<M, M>, ColumnList<M> {
 
 export class Column<V, M> extends Ops<V, M> implements ColumnExpr<V, M> {
   _value_phantom: V = null as any;
+  readonly $type = 'COLUMN_EXPR' as const;
 
   readonly modelClass: ModelClass<M>;
   readonly tableName: string;

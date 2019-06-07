@@ -30,6 +30,8 @@ export abstract class Ops<V, M> {
 }
 
 export class InfixOp<V, M> extends Ops<V, M> implements InfixExpr<V, M> {
+  readonly $type = 'INFIX_EXPR' as const;
+
   left: Expr<V, M> = todo();
   op: Op = todo();
   right: Expr<V, M> = todo();
