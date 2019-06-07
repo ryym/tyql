@@ -125,13 +125,12 @@ export interface TableRel<V, M1, M2> extends ColumnList<M2> {
 }
 
 export interface TableRelBuilder<V, M1, M2> {
-  $type: 'TABLE_REL_BUILDER';
+  $joinType: 'TABLE_REL_BUILDER';
   (): TableRel<V, M1, M2>;
 }
 
-export interface TableJoin<M> {
-  $type: 'TABLE_JOIN';
-  modelClass: ModelClass<M>;
+export interface TableJoin<M> extends ColumnList<M> {
+  $joinType: 'TABLE_JOIN';
   on: Expr<boolean, M>;
 }
 

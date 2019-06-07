@@ -1,4 +1,17 @@
-import { ModelClass, TableRel } from './types';
+import {
+  ModelClass,
+  TableRel,
+  Selectable,
+  Select,
+  ValuesOf,
+  Joinable,
+  RowType,
+  Expr,
+  Ordering,
+  AliasedQuery,
+  Connection,
+  ResultRowType,
+} from './types';
 import {
   Table,
   FieldNames,
@@ -53,7 +66,10 @@ export function table<M, Rels extends RelsTemplate<M>>(
   const columns = newColumnSet(tableName, modelClass);
   const relations = makeRelationBuilders(tableName, columns, config.rels || ({} as Rels));
 
-  const builder = () => makeTableActions(modelClass, columns);
+  const builder = (): TableActions<M> => {
+    return new TableActionsImpl(modelClass.tyql.table, Object.values(columns));
+  };
+
   Object.defineProperty(builder, 'name', { value: `${tableName}_builder` });
 
   return Object.assign(builder, columns, relations);
@@ -105,7 +121,7 @@ const makeRelationBuilders = <M, Rels extends RelsTemplate<M>>(
       };
       Object.defineProperty(builder, 'name', { value: `${tableAlias}_builder` });
       const relBuilder: RelationBuilder<any, M, any> = Object.assign(builder, rightColumns, {
-        $type: 'TABLE_REL_BUILDER' as const,
+        $joinType: 'TABLE_REL_BUILDER' as const,
       });
       (rls as any)[name] = relBuilder;
       return rls;
@@ -114,25 +130,64 @@ const makeRelationBuilders = <M, Rels extends RelsTemplate<M>>(
   );
 };
 
-const makeTableActions = <M>(modelClass: ModelClass<M>, columns: ColumnSet<M>): TableActions<M> => {
-  const todo = (): any => {
-    throw new Error('unimplemented');
-  };
-  const query = () => new QueryBuilder<M, M>(newQuery(modelClass));
-  return {
-    $type: 'COLUMN_LIST',
-    columns: () => Object.values(columns),
-    rels: () => todo(),
-    as: () => todo(),
-    query,
-    select: (...sels) => query().select(...sels),
-    innerJoin: join => query().innerJoin(join),
-    where: (...preds) => query().where(...preds),
-    groupBy: (...keys) => query().groupBy(...keys),
-    having: (...exprs) => query().having(...exprs),
-    orderBy: (...orders) => query().orderBy(...orders),
-    limit: n => query().limit(n),
-    offset: n => query().offset(n),
-    load: conn => query().load(conn),
-  };
+const unimplemented = (): any => {
+  throw new Error('unimplemented');
 };
+
+class TableActionsImpl<M> implements TableActions<M> {
+  $type = 'COLUMN_LIST' as const;
+
+  constructor(private readonly tableName: string, private readonly _columns: Column<any, M>[]) {}
+
+  columns() {
+    return Object.values(this._columns);
+  }
+
+  rels() {
+    return unimplemented();
+  }
+
+  query(): QueryBuilder<M, M> {
+    return new QueryBuilder(newQuery(this, this.tableName));
+  }
+
+  select<Sels extends Selectable<M>[]>(...sels: Sels): QueryBuilder<Select<ValuesOf<Sels>>, M> {
+    return this.query().select(...sels);
+  }
+
+  innerJoin<M1 extends M, M2>(join: Joinable<M1, M2>): QueryBuilder<RowType<M, M2>, M | M2> {
+    return this.query().innerJoin(join);
+  }
+
+  where(...preds: Expr<boolean, M>[]): QueryBuilder<M, M> {
+    return this.query().where(...preds);
+  }
+
+  groupBy(...exprs: Expr<any, M>[]): QueryBuilder<M, M> {
+    return this.query().groupBy(...exprs);
+  }
+
+  having(...preds: Expr<boolean, M>[]): QueryBuilder<M, M> {
+    return this.query().having(...preds);
+  }
+
+  orderBy(...ords: Ordering<M>[]): QueryBuilder<M, M> {
+    return this.query().orderBy(...ords);
+  }
+
+  limit(n: number): QueryBuilder<M, M> {
+    return this.query().limit(n);
+  }
+
+  offset(n: number): QueryBuilder<M, M> {
+    return this.query().offset(n);
+  }
+
+  as(_alias: string): AliasedQuery {
+    return unimplemented();
+  }
+
+  load(conn: Connection): Promise<ResultRowType<M>[]> {
+    return this.query().load(conn);
+  }
+}

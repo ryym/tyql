@@ -11,23 +11,36 @@ import {
   Connection,
   ResultRowType,
 } from './types';
-import { Query } from './query';
+import { Query, constructQuery } from './query';
 
 const unimplemented = (): never => {
   throw new Error('unimplemented');
 };
 
 export class QueryBuilder<R, Ms> implements IQueryBuilder<R, Ms> {
-  constructor(private readonly query: Query<Ms>) {
-    console.log(this.query);
+  constructor(private readonly query: Query<Ms>) {}
+
+  select<Sels extends Selectable<Ms>[]>(...sels: Sels): QueryBuilder<Select<ValuesOf<Sels>>, Ms> {
+    return new QueryBuilder<Select<ValuesOf<Sels>>, Ms>({
+      ...this.query,
+      select: sels,
+    });
   }
 
-  select<Sels extends Selectable<Ms>[]>(..._sels: Sels): QueryBuilder<Select<ValuesOf<Sels>>, Ms> {
-    return unimplemented();
-  }
+  innerJoin<M1 extends Ms, M2>(join: Joinable<M1, M2>): QueryBuilder<RowType<R, M2>, Ms | M2> {
+    const query: Query<Ms | M2> = { ...this.query };
 
-  innerJoin<M1 extends Ms, M2>(_join: Joinable<M1, M2>): QueryBuilder<RowType<R, M2>, Ms | M2> {
-    return unimplemented();
+    switch (join.$joinType) {
+      case 'TABLE_JOIN':
+        query.defaultSelect.push(join);
+        break;
+      case 'TABLE_REL_BUILDER':
+        query.defaultSelect.push(join());
+        break;
+    }
+
+    query.innerJoins.push(join);
+    return new QueryBuilder(query);
   }
 
   where(..._preds: Expr<boolean, Ms>[]): QueryBuilder<R, Ms> {
@@ -58,7 +71,13 @@ export class QueryBuilder<R, Ms> implements IQueryBuilder<R, Ms> {
     return unimplemented();
   }
 
-  load(_conn: Connection): Promise<ResultRowType<R>[]> {
+  async load(conn: Connection): Promise<ResultRowType<R>[]> {
+    const query = constructQuery(conn, this.query);
+
+    // TODO: Adjust options for RDB. This options is only for PostgreSQL.
+    const rows = await query.options({ rowMode: 'array' });
+    console.log(rows);
+
     return unimplemented();
   }
 }
