@@ -15,17 +15,17 @@ export type RelsTemplateItem<M1, M2, V> = {
   rightModel: ModelClass<M2>;
 };
 
-export type RelsTemplate<A, B = any, P extends keyof B = any> = {
-  readonly [key: string]: RelsTemplateItem<A, B, B[P]>;
+export type RelsTemplate<M1, M2 = any, P extends keyof M2 = any> = {
+  readonly [key: string]: RelsTemplateItem<M1, M2, M2[P]>;
 };
 
-export type RelationBuilders<M1, Tmpl> = {
-  [K in keyof Tmpl]: Tmpl[K] extends RelsTemplateItem<M1, infer M2, infer V>
+export type RelationBuilders<M1, Rels> = {
+  [P in keyof Rels]: Rels[P] extends RelsTemplateItem<M1, infer M2, infer V>
     ? RelationBuilder<V, M1, M2>
     : never
 };
 
-export type TableConfig<T, Rels extends RelsTemplate<T>> = {
+export type TableConfig<M, Rels extends RelsTemplate<M>> = {
   rels?: Rels;
 };
 
