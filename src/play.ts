@@ -1,4 +1,5 @@
 import { table, rel } from './tableBuilder';
+import { KnexConnection } from './connection';
 
 class User {
   static tyql = {
@@ -86,3 +87,26 @@ export async function checkTypes() {
   // expected error
   // Users().where(Users.id.eq(Posts.id));
 }
+
+async function checkRunning() {
+  const conn = new KnexConnection({
+    client: 'pg',
+    connection: {
+      host: 'localhost',
+      user: 'ryu',
+      database: 'tyql_sample',
+    },
+  });
+  try {
+    const users = await Users().load(conn);
+    console.log(users);
+
+    const idAndNames = await Users()
+      .select(Users.id, Users.user_name)
+      .load(conn);
+    console.log(idAndNames);
+  } finally {
+    conn.close();
+  }
+}
+checkRunning();
