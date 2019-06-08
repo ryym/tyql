@@ -10,8 +10,8 @@ import {
   AliasedQuery,
   Connection,
   ResultRowType,
+  Query,
 } from './types';
-import { Query, constructQuery } from './query';
 import { unreachable } from './unreachable';
 
 const unimplemented = (): never => {
@@ -75,12 +75,6 @@ export class QueryBuilder<R, Ms> implements IQueryBuilder<R, Ms> {
   }
 
   async load(conn: Connection): Promise<ResultRowType<R>[]> {
-    const query = constructQuery(conn, this.query);
-
-    // TODO: Adjust options for RDB. This options is only for PostgreSQL.
-    const rows = await query.options({ rowMode: 'array' });
-    console.log(rows);
-
-    return unimplemented();
+    return conn.runQuery<ResultRowType<R>>(this.query);
   }
 }

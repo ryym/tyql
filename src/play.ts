@@ -44,7 +44,7 @@ export const Comments = table(Comment, {
 });
 
 const conn = {
-  connection: (): any => null,
+  runQuery: (): any => null,
 };
 
 export async function checkTypes() {

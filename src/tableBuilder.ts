@@ -11,6 +11,8 @@ import {
   AliasedQuery,
   Connection,
   ResultRowType,
+  ColumnList,
+  Query,
 } from './types';
 import {
   Table,
@@ -22,7 +24,6 @@ import {
   TableActions,
 } from './table';
 import { QueryBuilder } from './queryBuilder';
-import { newQuery } from './query';
 
 export const rel = <M1, M2, C2 extends FieldNames<M2>>(
   rightModel: ModelClass<M2>,
@@ -132,6 +133,15 @@ const makeRelationBuilders = <M, Rels extends RelsTemplate<M>>(
 
 const unimplemented = (): any => {
   throw new Error('unimplemented');
+};
+
+export const newQuery = <M>(fromCols: ColumnList<M>, fromTable: string): Query<M> => {
+  return {
+    from: fromTable,
+    select: null,
+    defaultSelect: [fromCols],
+    innerJoins: [],
+  };
 };
 
 class TableActionsImpl<M> implements TableActions<M> {

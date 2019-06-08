@@ -161,12 +161,15 @@ export interface QueryBuilder<R, Ms> {
   load(conn: Connection): Promise<ResultRowType<R>[]>;
 }
 
-// export interface QueryRunner<R> {
-//   load(conn: Connection): Promise<R[]>;
-// }
+export interface Query<Models> {
+  from: string;
+  select: Selectable<any>[] | null;
+  defaultSelect: ColumnList<Models>[];
+  innerJoins: Joinable<any, any>[];
+}
 
 export interface Connection {
-  connection(): any; // ??
+  runQuery<R>(q: Query<any>): Promise<R[]>;
 }
 
 export type Select<V> = { selects: V };
