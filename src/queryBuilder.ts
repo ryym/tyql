@@ -4,7 +4,7 @@ import {
   Select,
   ValuesOf,
   Joinable,
-  RowType,
+  AddColumn,
   Expr,
   Ordering,
   AliasedQuery,
@@ -28,7 +28,7 @@ export class QueryBuilder<R, Ms> implements IQueryBuilder<R, Ms> {
     });
   }
 
-  innerJoin<M1 extends Ms, M2>(join: Joinable<M1, M2>): QueryBuilder<RowType<R, M2>, Ms | M2> {
+  innerJoin<M1 extends Ms, M2>(join: Joinable<M1, M2>): QueryBuilder<AddColumn<R, M2>, Ms | M2> {
     const query: Query<Ms | M2> = { ...this.query };
 
     switch (join.$joinType) {

@@ -5,7 +5,7 @@ import {
   Select,
   ValuesOf,
   Joinable,
-  RowType,
+  AddColumn,
   Expr,
   Ordering,
   AliasedQuery,
@@ -155,7 +155,7 @@ class TableActionsImpl<M> implements TableActions<M> {
     return this.query().select(...sels);
   }
 
-  innerJoin<M1 extends M, M2>(join: Joinable<M1, M2>): QueryBuilder<RowType<M, M2>, M | M2> {
+  innerJoin<M1 extends M, M2>(join: Joinable<M1, M2>): QueryBuilder<AddColumn<M, M2>, M | M2> {
     return this.query().innerJoin(join);
   }
 
