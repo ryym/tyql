@@ -6,13 +6,13 @@ import {
   ValuesOf,
   Joinable,
   AddColumn,
-  Expr,
   Ordering,
   AliasedQuery,
   Connection,
   ResultRowType,
   ColumnList,
   Query,
+  IExpr,
 } from './types';
 import {
   Table,
@@ -169,15 +169,15 @@ class TableActionsImpl<M> implements TableActions<M> {
     return this.query().innerJoin(join);
   }
 
-  where(...preds: Expr<boolean, M>[]): QueryBuilder<M, M> {
+  where(...preds: IExpr<boolean, M>[]): QueryBuilder<M, M> {
     return this.query().where(...preds);
   }
 
-  groupBy(...exprs: Expr<any, M>[]): QueryBuilder<M, M> {
+  groupBy(...exprs: IExpr<any, M>[]): QueryBuilder<M, M> {
     return this.query().groupBy(...exprs);
   }
 
-  having(...preds: Expr<boolean, M>[]): QueryBuilder<M, M> {
+  having(...preds: IExpr<boolean, M>[]): QueryBuilder<M, M> {
     return this.query().having(...preds);
   }
 

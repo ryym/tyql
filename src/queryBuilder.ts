@@ -5,12 +5,12 @@ import {
   ValuesOf,
   Joinable,
   AddColumn,
-  Expr,
   Ordering,
   AliasedQuery,
   Connection,
   ResultRowType,
   Query,
+  IExpr,
 } from './types';
 import { unreachable } from './unreachable';
 
@@ -46,15 +46,15 @@ export class QueryBuilder<R, Ms> implements IQueryBuilder<R, Ms> {
     return new QueryBuilder(query);
   }
 
-  where(..._preds: Expr<boolean, Ms>[]): QueryBuilder<R, Ms> {
+  where(..._preds: IExpr<boolean, Ms>[]): QueryBuilder<R, Ms> {
     return unimplemented();
   }
 
-  groupBy(..._exprs: Expr<any, Ms>[]): QueryBuilder<R, Ms> {
+  groupBy(..._exprs: IExpr<any, Ms>[]): QueryBuilder<R, Ms> {
     return unimplemented();
   }
 
-  having(..._preds: Expr<boolean, Ms>[]): QueryBuilder<R, Ms> {
+  having(..._preds: IExpr<boolean, Ms>[]): QueryBuilder<R, Ms> {
     return unimplemented();
   }
 

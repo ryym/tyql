@@ -1,5 +1,5 @@
 import * as Knex from 'knex';
-import { Query, Expr, Selectable } from './types';
+import { Query, Selectable, IExpr } from './types';
 import { Quote } from './connection';
 import { mapRows } from './queryResultMapper';
 
@@ -52,9 +52,9 @@ const buildSelect = (select: Selectable<any>[], ctx: BuildContext): Knex.Raw[] =
   return raws;
 };
 
-const buildExpr = (expr: Expr<any, any>, ctx: BuildContext): Knex.Raw => {
+const buildExpr = (iexpr: IExpr<any, any>, ctx: BuildContext): Knex.Raw => {
   const st = new QueryState();
-  appendExpr(st, expr, ctx);
+  appendExpr(st, iexpr, ctx);
   return ctx.knex.raw(st.query, st.bindings);
 };
 
@@ -68,9 +68,10 @@ class QueryState {
   }
 }
 
-const appendExpr = (st: QueryState, expr: Expr<any, any>, ctx: BuildContext) => {
-  switch (expr.$type) {
-    case 'COLUMN_EXPR':
+const appendExpr = (st: QueryState, iexpr: IExpr<any, any>, ctx: BuildContext) => {
+  const expr = iexpr.toExpr();
+  switch (expr.$exprType) {
+    case 'COLUMN':
       st.append(`${ctx.quote(expr.tableName)}.${ctx.quote(expr.columnName)}`);
       return;
     default:

@@ -20,7 +20,7 @@ export enum OpSufix {
 }
 
 export interface ColumnExpr<V, M> {
-  readonly $type: 'COLUMN_EXPR';
+  readonly $exprType: 'COLUMN';
 
   // This phantom field is neccesary to hold V. Without this, you can:
   // `let a: ColumnExpr<string, any> = <ColumnExpr<number, any>>b;`.
@@ -32,46 +32,46 @@ export interface ColumnExpr<V, M> {
 }
 
 export interface LitExpr<V> {
-  readonly $type: 'LIT_EXPR';
+  readonly $exprType: 'LIT';
   readonly value: V;
 }
 
 export interface PrefixExpr<V, M> {
-  readonly $type: 'PREFIX_EXPR';
+  readonly $exprType: 'PREFIX';
   op: Op;
-  expr: Expr<V, M>;
+  expr: IExpr<V, M>;
 }
 
 export interface InfixExpr<V, M> {
-  readonly $type: 'INFIX_EXPR';
-  left: Expr<V, M>;
+  readonly $exprType: 'INFIX';
+  left: IExpr<V, M>;
   op: Op;
-  right: Expr<V, M>;
+  right: IExpr<V, M>;
 }
 
 export interface SufixExpr<V, M> {
-  readonly $type: 'SUFIX_EXPR';
-  expr: Expr<V, M>;
+  readonly $exprType: 'SUFIX';
+  expr: IExpr<V, M>;
   op: Op;
 }
 
 export interface InExpr<V, M> {
-  readonly $type: 'IN_EXPR';
-  left: Expr<V, M>;
-  right: Expr<V, any>[];
+  readonly $exprType: 'IN';
+  left: IExpr<V, M>;
+  right: IExpr<V, any>[];
   not: boolean;
 }
 
 export interface BetweenExpr<V, M> {
-  readonly $type: 'BETWEEN_EXPR';
-  value: Expr<V, M>;
-  start: Expr<V, M>;
-  end: Expr<V, M>;
+  readonly $exprType: 'BETWEEN';
+  value: IExpr<V, M>;
+  start: IExpr<V, M>;
+  end: IExpr<V, M>;
   not: boolean;
 }
 
 export interface QueryExpr<V> {
-  readonly $type: 'QUERY_EXPR';
+  readonly $exprType: 'QUERY';
   _value?: V; // ??
 }
 
@@ -85,16 +85,27 @@ export type Expr<V, M> =
   | BetweenExpr<V, M>
   | QueryExpr<V>;
 
+export interface IExpr<V, M> {
+  readonly $type: 'EXPR';
+  toExpr(): Expr<V, M>;
+}
+
 export interface Aliased<V, M> {
   readonly $type: 'ALIASED';
   alias: string;
   expr: Expr<V, M>;
 }
 
+export interface IColumn<V, M> extends IExpr<V, M> {
+  _value_phantom: V;
+  modelClass: ModelClass<M>;
+  toExpr(): ColumnExpr<V, M>;
+}
+
 // Special interface to bundle multiple columns as one expression.
 export interface ColumnList<M> {
   readonly $type: 'COLUMN_LIST';
-  columns(): ColumnExpr<any, M>[];
+  columns(): IColumn<any, M>[];
 }
 
 export enum Order {
@@ -119,9 +130,9 @@ export interface SchemaTable<M> {
 export type TableLike = AliasedQuery | SchemaTable<any>;
 
 export interface TableRel<V, M1, M2> extends ColumnList<M2> {
-  leftCol: ColumnExpr<V, M1>;
-  rightCol: ColumnExpr<V, M2>;
-  on<U>(expr: Expr<U, any>): TableJoin<M2>;
+  leftCol: IColumn<V, M1>;
+  rightCol: IColumn<V, M2>;
+  on<U>(expr: IExpr<U, any>): TableJoin<M2>;
 }
 
 export interface TableRelBuilder<V, M1, M2> {
@@ -134,7 +145,7 @@ export interface TableJoin<M> extends ColumnList<M> {
   on: Expr<boolean, M>;
 }
 
-export type Selectable<M> = Expr<any, M> | Aliased<any, M> | ColumnList<M>;
+export type Selectable<M> = IExpr<any, M> | Aliased<any, M> | ColumnList<M>;
 
 export type Joinable<M1, M2> = TableRelBuilder<any, M1, M2> | TableJoin<M2>;
 
@@ -144,11 +155,11 @@ export interface QueryBuilder<R, Ms> {
 
   innerJoin<M1 extends Ms, M2>(join: Joinable<M1, M2>): QueryBuilder<AddColumn<R, M2>, Ms | M2>;
 
-  where(...preds: Expr<boolean, Ms>[]): QueryBuilder<R, Ms>;
+  where(...preds: IExpr<boolean, Ms>[]): QueryBuilder<R, Ms>;
 
-  groupBy(...exprs: Expr<any, Ms>[]): QueryBuilder<R, Ms>;
+  groupBy(...exprs: IExpr<any, Ms>[]): QueryBuilder<R, Ms>;
 
-  having(...preds: Expr<boolean, Ms>[]): QueryBuilder<R, Ms>;
+  having(...preds: IExpr<boolean, Ms>[]): QueryBuilder<R, Ms>;
 
   orderBy(...ords: Ordering<Ms>[]): QueryBuilder<R, Ms>;
 
@@ -176,7 +187,7 @@ export type Select<V> = { selects: V };
 
 export type ValuesOf<T> = { [P in keyof T]: ValueOf<T[P]> };
 
-type ValueOf<S> = S extends ColumnList<infer M> ? M : S extends Expr<infer V, any> ? V : never;
+type ValueOf<S> = S extends ColumnList<infer M> ? M : S extends IExpr<infer V, any> ? V : never;
 
 // TODO: Should return never if R tuple is too large.
 // This definition returns [tuple, M] in that case,

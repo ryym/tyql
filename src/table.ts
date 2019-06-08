@@ -7,6 +7,7 @@ import {
   ModelClass,
   Connection,
   TableRelBuilder,
+  IColumn,
 } from './types';
 import { Ops } from './ops';
 
@@ -42,14 +43,14 @@ type RelsMap<T, RS> = {
 };
 
 export interface TableActions<M> extends QueryBuilder<M, M>, ColumnList<M> {
-  columns(): ColumnExpr<any, M>[];
+  columns(): IColumn<any, M>[];
   query(): QueryBuilder<M, M>;
   rels<RS extends TableRel<any, M, any>[]>(...rels: RS): RelationLoader<M, RS>;
 }
 
-export class Column<V, M> extends Ops<V, M> implements ColumnExpr<V, M> {
+export class Column<V, M> extends Ops<V, M> implements IColumn<V, M> {
+  readonly $type = 'EXPR' as const;
   _value_phantom: V = null as any;
-  readonly $type = 'COLUMN_EXPR' as const;
 
   readonly modelClass: ModelClass<M>;
   readonly tableName: string;
@@ -62,6 +63,17 @@ export class Column<V, M> extends Ops<V, M> implements ColumnExpr<V, M> {
     this.tableName = conf.tableName;
     this.columnName = conf.columnName;
     this.fieldName = conf.fieldName;
+  }
+
+  toExpr(): ColumnExpr<V, M> {
+    return {
+      $exprType: 'COLUMN',
+      _value_phantom: this._value_phantom,
+      modelClass: this.modelClass,
+      tableName: this.tableName,
+      columnName: this.columnName,
+      fieldName: this.fieldName,
+    };
   }
 
   asc(): Ordering<M> {

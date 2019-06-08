@@ -15,7 +15,7 @@ const mapRow = (select: Selectable<any>[], rawRow: any[]): any => {
         const cols = sel.columns();
         const m = cols[0].modelClass.tyql.template();
         sel.columns().forEach(col => {
-          m[col.fieldName] = rawRow[rawRowIdx++];
+          m[col.toExpr().fieldName] = rawRow[rawRowIdx++];
         });
         row[rowIdx++] = m;
         break;
