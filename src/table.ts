@@ -50,7 +50,6 @@ export interface TableActions<M> extends QueryBuilder<M, M>, ColumnList<M> {
 
 export class Column<V, M> extends Ops<V, M> implements IColumn<V, M> {
   readonly $type = 'EXPR' as const;
-  _value_phantom: V = null as any;
 
   readonly modelClass: ModelClass<M>;
   readonly tableName: string;
@@ -68,7 +67,6 @@ export class Column<V, M> extends Ops<V, M> implements IColumn<V, M> {
   toExpr(): ColumnExpr<V, M> {
     return {
       $exprType: 'COLUMN',
-      _value_phantom: this._value_phantom,
       modelClass: this.modelClass,
       tableName: this.tableName,
       columnName: this.columnName,

@@ -21,10 +21,7 @@ export enum OpSufix {
 
 export interface ColumnExpr<V, M> {
   readonly $exprType: 'COLUMN';
-
-  // This phantom field is neccesary to hold V. Without this, you can:
-  // `let a: ColumnExpr<string, any> = <ColumnExpr<number, any>>b;`.
-  readonly _value_phantom: V;
+  readonly _value_phantom?: V;
   readonly tableName: string;
   readonly columnName: string;
   readonly fieldName: string;
@@ -38,20 +35,23 @@ export interface LitExpr<V> {
 
 export interface PrefixExpr<V, M> {
   readonly $exprType: 'PREFIX';
+  readonly _value_phantom?: V;
   op: Op;
-  expr: IExpr<V, M>;
+  expr: IExpr<any, M>;
 }
 
 export interface InfixExpr<V, M> {
   readonly $exprType: 'INFIX';
-  left: IExpr<V, M>;
+  readonly _value_phantom?: V;
+  left: IExpr<any, M>;
   op: Op;
-  right: IExpr<V, M>;
+  right: IExpr<any, M>;
 }
 
 export interface SufixExpr<V, M> {
   readonly $exprType: 'SUFIX';
-  expr: IExpr<V, M>;
+  readonly _value_phantom?: V;
+  expr: IExpr<any, M>;
   op: Op;
 }
 
@@ -97,7 +97,6 @@ export interface Aliased<V, M> {
 }
 
 export interface IColumn<V, M> extends IExpr<V, M> {
-  _value_phantom: V;
   modelClass: ModelClass<M>;
   toExpr(): ColumnExpr<V, M>;
 }
