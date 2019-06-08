@@ -12,6 +12,7 @@ import {
   ResultRowType,
 } from './types';
 import { Query, constructQuery } from './query';
+import { unreachable } from './unreachable';
 
 const unimplemented = (): never => {
   throw new Error('unimplemented');
@@ -37,6 +38,8 @@ export class QueryBuilder<R, Ms> implements IQueryBuilder<R, Ms> {
       case 'TABLE_REL_BUILDER':
         query.defaultSelect.push(join());
         break;
+      default:
+        unreachable(join);
     }
 
     query.innerJoins.push(join);
