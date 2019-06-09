@@ -22,13 +22,13 @@ class Comment {
     table: 'comments',
     template: () => new Comment(0, 0, ''),
   };
-  constructor(public id: number, public author_id: number, public content: string) {}
+  constructor(public id: number, public commenter_id: number, public content: string) {}
 }
 
 export const Users = table(User, {
   rels: {
     posts: rel(Post, 'author_id', 'id'),
-    comments: rel(Comment, 'author_id', 'id'),
+    comments: rel(Comment, 'commenter_id', 'id'),
   },
 });
 
@@ -40,7 +40,7 @@ export const Posts = table(Post, {
 
 export const Comments = table(Comment, {
   rels: {
-    author: rel(User, 'id', 'author_id'),
+    commenter: rel(User, 'id', 'commenter_id'),
   },
 });
 
