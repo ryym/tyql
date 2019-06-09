@@ -65,7 +65,7 @@ export async function checkTypes() {
   const tableAndCols = await Users()
     .innerJoin(Users.posts)
     .innerJoin(Users.comments)
-    .select(Users(), Users.posts.title, Users.posts(), Users.id, Users.comments())
+    .select(Users(), Users.posts.title, Users.posts.$all(), Users.id, Users.comments.$all())
     .load(conn);
   console.log(tableAndCols);
 
@@ -81,8 +81,6 @@ export async function checkTypes() {
     .select(Users.id.add(3), Users.id.eq(3))
     .load(conn);
   console.log(ret);
-
-  Users().innerJoin(Users.posts().on(Users.id.eq(1)));
 
   // expected error
   // Users().where(Users.id.eq(Posts.id));

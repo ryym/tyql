@@ -3,7 +3,6 @@ import {
   Selectable,
   Select,
   ValuesOf,
-  Joinable,
   AddColumn,
   Ordering,
   AliasedQuery,
@@ -11,8 +10,8 @@ import {
   ResultRowType,
   Query,
   IExpr,
+  Joinable,
 } from './types';
-import { unreachable } from './unreachable';
 
 const unimplemented = (): never => {
   throw new Error('unimplemented');
@@ -30,18 +29,7 @@ export class QueryBuilder<R, Ms> implements IQueryBuilder<R, Ms> {
 
   innerJoin<M1 extends Ms, M2>(join: Joinable<M1, M2>): QueryBuilder<AddColumn<R, M2>, Ms | M2> {
     const query: Query<Ms | M2> = { ...this.query };
-
-    switch (join.$joinType) {
-      case 'TABLE_JOIN':
-        query.defaultSelect.push(join);
-        break;
-      case 'TABLE_REL_BUILDER':
-        query.defaultSelect.push(join());
-        break;
-      default:
-        unreachable(join);
-    }
-
+    query.defaultSelect.push(join.$all());
     query.innerJoins.push(join);
     return new QueryBuilder(query);
   }

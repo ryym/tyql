@@ -1,10 +1,8 @@
 import {
   ModelClass,
-  TableRel,
   Selectable,
   Select,
   ValuesOf,
-  Joinable,
   AddColumn,
   Ordering,
   AliasedQuery,
@@ -13,6 +11,8 @@ import {
   ColumnList,
   Query,
   IExpr,
+  JoinDefinition,
+  Joinable,
 } from './types';
 import {
   Table,
@@ -111,18 +111,18 @@ const makeRelationBuilders = <M, Rels extends RelsTemplate<M>>(
         columnName: originalRightCol.columnName,
       });
 
-      const builder = (): TableRel<any, M, any> => {
-        return {
-          $type: 'COLUMN_LIST',
+      const relBuilder: RelationBuilder<any, M, any> = Object.assign({}, rightColumns, {
+        _joinable_types: null as any,
+        $leftCol: leftCol,
+        $rightCol: rightCol,
+        $all: () => ({
+          $type: 'COLUMN_LIST' as const,
           columns: () => Object.values(rightColumns),
-          leftCol,
-          rightCol,
-          on: null as any, // TODO
-        };
-      };
-      Object.defineProperty(builder, 'name', { value: `${tableAlias}_builder` });
-      const relBuilder: RelationBuilder<any, M, any> = Object.assign(builder, rightColumns, {
-        $joinType: 'TABLE_REL_BUILDER' as const,
+        }),
+        $toJoin: (): JoinDefinition => ({
+          table: tableAlias,
+          on: rightCol.eq(leftCol),
+        }),
       });
       (rls as any)[name] = relBuilder;
       return rls;

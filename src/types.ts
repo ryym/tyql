@@ -131,25 +131,23 @@ export interface SchemaTable<M> {
 
 export type TableLike = AliasedQuery | SchemaTable<any>;
 
-export interface TableRel<V, M1, M2> extends ColumnList<M2> {
-  leftCol: IColumn<V, M1>;
-  rightCol: IColumn<V, M2>;
-  on<U>(expr: IExpr<U, any>): TableJoin<M2>;
+export interface Joinable<M1, M2> {
+  _joinable_types: [M1, M2];
+  $all(): ColumnList<M2>;
+  $toJoin(): JoinDefinition;
 }
 
-export interface TableRelBuilder<V, M1, M2> {
-  $joinType: 'TABLE_REL_BUILDER';
-  (): TableRel<V, M1, M2>;
+export interface JoinDefinition {
+  table: string;
+  on: IExpr<any, any>;
 }
 
-export interface TableJoin<M> extends ColumnList<M> {
-  $joinType: 'TABLE_JOIN';
-  on: IExpr<boolean, M>;
+export interface TableRel<V, M1, M2> extends Joinable<M1, M2> {
+  $leftCol: IColumn<V, M1>;
+  $rightCol: IColumn<V, M2>;
 }
 
 export type Selectable<M> = IExpr<any, M> | Aliased<any, M> | ColumnList<M>;
-
-export type Joinable<M1, M2> = TableRelBuilder<any, M1, M2> | TableJoin<M2>;
 
 // Perhaps Unnecessary interface?
 export interface QueryBuilder<R, Ms> {

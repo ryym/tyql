@@ -1,12 +1,10 @@
 import {
-  // ColumnExpr,
   QueryBuilder,
   Ordering,
-  TableRel,
   ColumnList,
   ModelClass,
   Connection,
-  TableRelBuilder,
+  TableRel,
   IColumn,
   ColumnExpr,
   iexprPhantomTypes,
@@ -25,7 +23,7 @@ export type FieldNamesOfType<T, V> = {
 
 export type ColumnSet<M> = { readonly [K in keyof Fields<M>]: Column<M[K], M> };
 
-export type RelationBuilder<V, M1, M2> = ColumnSet<M2> & TableRelBuilder<V, M1, M2>;
+export type RelationBuilder<V, M1, M2> = ColumnSet<M2> & TableRel<V, M1, M2>;
 
 type AnyRelationBuilders<M> = {
   [key: string]: RelationBuilder<any, M, any>;
@@ -40,8 +38,8 @@ export interface RelationLoader<M, RS extends TableRel<any, M, any>[]> {
   loadMaps(records: M[], conn: Connection): Promise<RelsMap<M, RS>>;
 }
 
-type RelsMap<T, RS> = {
-  [K in keyof RS]: RS[K] extends TableRel<T, infer U, infer V> ? Map<V, U[]> : never
+type RelsMap<M1, RS> = {
+  [K in keyof RS]: RS[K] extends TableRel<infer V, M1, infer M2> ? Map<V, M2[]> : never
 };
 
 export interface TableActions<M> extends QueryBuilder<M, M>, ColumnList<M> {
