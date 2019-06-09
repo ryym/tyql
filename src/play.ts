@@ -1,4 +1,4 @@
-import { table, rel } from './tableBuilder';
+import { table, rel } from './table';
 import { KnexConnection } from './connection';
 
 class User {
