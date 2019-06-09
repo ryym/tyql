@@ -49,35 +49,35 @@ const conn = {
 };
 
 export async function checkTypes() {
-  const users = await Users().load(conn);
+  const users = await Users.$query().load(conn);
   console.log(users);
 
-  const idAndNames = await Users()
+  const idAndNames = await Users.$query()
     .select(Users.id, Users.user_name)
     .load(conn);
   console.log(idAndNames);
 
-  const userAndPosts = await Users()
+  const userAndPosts = await Users.$query()
     .innerJoin(Users.posts)
     .load(conn);
   console.log(userAndPosts);
 
-  const tableAndCols = await Users()
+  const tableAndCols = await Users.$query()
     .innerJoin(Users.posts)
     .innerJoin(Users.comments)
-    .select(Users(), Users.posts.title, Users.posts.$all(), Users.id, Users.comments.$all())
+    .select(Users.$all(), Users.posts.title, Users.posts.$all(), Users.id, Users.comments.$all())
     .load(conn);
   console.log(tableAndCols);
 
-  Users().where(Users.id.eq(1), Users.id.eq(Users.id).eq(true));
-  Users()
+  Users.$query().where(Users.id.eq(1), Users.id.eq(Users.id).eq(true));
+  Users.$query()
     .innerJoin(Users.posts)
     // .where(Users.id.add(3)) // expected error
     .where(Users.id.eq(Users.id.add(Users.posts.id)), Users.id.eq(3), Users.id.in(1, 2, 3))
     .groupBy(Users.posts.id)
     .orderBy(Users.id.asc(), Users.posts.title.desc());
 
-  const ret = await Users()
+  const ret = await Users.$query()
     .select(Users.id.add(3), Users.id.eq(3))
     .load(conn);
   console.log(ret);
@@ -96,16 +96,16 @@ async function checkRunning() {
     },
   });
   try {
-    const users = await Users().load(conn);
+    const users = await Users.$query().load(conn);
     console.log(users);
 
-    const ids = await Users()
+    const ids = await Users.$query()
       .select(Users.id)
       .where(Users.id.eq(1))
       .load(conn);
     console.log(ids);
 
-    const userAndPosts = await Users()
+    const userAndPosts = await Users.$query()
       .innerJoin(Users.posts)
       .load(conn);
     console.log(userAndPosts);

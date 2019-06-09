@@ -1,19 +1,4 @@
-import {
-  ModelClass,
-  Selectable,
-  Select,
-  ValuesOf,
-  AddColumn,
-  Ordering,
-  AliasedQuery,
-  Connection,
-  ResultRowType,
-  ColumnList,
-  Query,
-  IExpr,
-  JoinDefinition,
-  Joinable,
-} from './types';
+import { ModelClass, ColumnList, Query, JoinDefinition } from './types';
 import {
   Table,
   FieldNames,
@@ -21,7 +6,7 @@ import {
   RelationBuilder,
   Column,
   ColumnSet,
-  TableActions,
+  TableBase,
 } from './table';
 import { QueryBuilder } from './queryBuilder';
 
@@ -67,13 +52,18 @@ export function table<M, Rels extends RelsTemplate<M>>(
   const columns = newColumnSet(tableName, modelClass);
   const relations = makeRelationBuilders(tableName, columns, config.rels || ({} as Rels));
 
-  const builder = (): TableActions<M> => {
-    return new TableActionsImpl(modelClass.tyql.table, Object.values(columns));
+  const columnList: ColumnList<M> = {
+    $type: 'COLUMN_LIST' as const,
+    columns: () => Object.values(columns),
   };
 
-  Object.defineProperty(builder, 'name', { value: `${tableName}_builder` });
+  const base: TableBase<M> = {
+    $all: () => columnList,
+    $query: () => new QueryBuilder<M, M>(newQuery(columnList, tableName)),
+    $rels: () => unimplemented(),
+  };
 
-  return Object.assign(builder, columns, relations);
+  return Object.assign({}, columns, relations, base);
 }
 
 const newColumnSet = <M>(tableName: string, modelClass: ModelClass<M>): ColumnSet<M> => {
@@ -145,61 +135,3 @@ export const newQuery = <M>(fromCols: ColumnList<M>, fromTable: string): Query<M
     where: [],
   };
 };
-
-class TableActionsImpl<M> implements TableActions<M> {
-  $type = 'COLUMN_LIST' as const;
-
-  constructor(private readonly tableName: string, private readonly _columns: Column<any, M>[]) {}
-
-  columns() {
-    return Object.values(this._columns);
-  }
-
-  rels() {
-    return unimplemented();
-  }
-
-  query(): QueryBuilder<M, M> {
-    return new QueryBuilder(newQuery(this, this.tableName));
-  }
-
-  select<Sels extends Selectable<M>[]>(...sels: Sels): QueryBuilder<Select<ValuesOf<Sels>>, M> {
-    return this.query().select(...sels);
-  }
-
-  innerJoin<M1 extends M, M2>(join: Joinable<M1, M2>): QueryBuilder<AddColumn<M, M2>, M | M2> {
-    return this.query().innerJoin(join);
-  }
-
-  where(...preds: IExpr<boolean, M>[]): QueryBuilder<M, M> {
-    return this.query().where(...preds);
-  }
-
-  groupBy(...exprs: IExpr<any, M>[]): QueryBuilder<M, M> {
-    return this.query().groupBy(...exprs);
-  }
-
-  having(...preds: IExpr<boolean, M>[]): QueryBuilder<M, M> {
-    return this.query().having(...preds);
-  }
-
-  orderBy(...ords: Ordering<M>[]): QueryBuilder<M, M> {
-    return this.query().orderBy(...ords);
-  }
-
-  limit(n: number): QueryBuilder<M, M> {
-    return this.query().limit(n);
-  }
-
-  offset(n: number): QueryBuilder<M, M> {
-    return this.query().offset(n);
-  }
-
-  as(_alias: string): AliasedQuery {
-    return unimplemented();
-  }
-
-  load(conn: Connection): Promise<ResultRowType<M>[]> {
-    return this.query().load(conn);
-  }
-}

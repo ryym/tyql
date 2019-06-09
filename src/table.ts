@@ -29,10 +29,13 @@ type AnyRelationBuilders<M> = {
   [key: string]: RelationBuilder<any, M, any>;
 };
 
-export type Table<M, Rels extends AnyRelationBuilders<M>> = {
-  (): TableActions<M>;
-} & Rels &
-  ColumnSet<M>;
+export interface TableBase<M> {
+  $all(): ColumnList<M>;
+  $query(): QueryBuilder<M, M>;
+  $rels<RS extends TableRel<any, M, any>[]>(...rels: RS): RelationLoader<M, RS>;
+}
+
+export type Table<M, Rels extends AnyRelationBuilders<M>> = TableBase<M> & Rels & ColumnSet<M>;
 
 export interface RelationLoader<M, RS extends TableRel<any, M, any>[]> {
   loadMaps(records: M[], conn: Connection): Promise<RelsMap<M, RS>>;
@@ -41,12 +44,6 @@ export interface RelationLoader<M, RS extends TableRel<any, M, any>[]> {
 type RelsMap<M1, RS> = {
   [K in keyof RS]: RS[K] extends TableRel<infer V, M1, infer M2> ? Map<V, M2[]> : never
 };
-
-export interface TableActions<M> extends QueryBuilder<M, M>, ColumnList<M> {
-  columns(): IColumn<any, M>[];
-  query(): QueryBuilder<M, M>;
-  rels<RS extends TableRel<any, M, any>[]>(...rels: RS): RelationLoader<M, RS>;
-}
 
 export class Column<V, M> extends Ops<V, M> implements IColumn<V, M> {
   readonly $type = 'EXPR' as const;
