@@ -27,8 +27,9 @@ export abstract class Ops<V, M> implements IExpr<V, M> {
   // 本来は特定の型でしか呼び出せないはずだけど、
   // そこまでやると RDB ごとにも違いそうだし無視する。
   // SQL のシンタックス的に問題なければひとまずOK。
-  add<M2 = M>(_val: V | IExpr<V, M2>): InfixOp<V, M | M2> {
-    return todo();
+  add<M2 = M>(val: V | IExpr<V, M2>): InfixOp<V, M | M2> {
+    const expr = isIExpr(val) ? val : new Literal(val);
+    return new InfixOp<V, M | M2>(this, Op.ADD, expr);
   }
 
   // TODO: Return InOp
@@ -76,3 +77,33 @@ export class Literal<V> extends Ops<V, never> implements IExpr<V, never> {
     };
   }
 }
+
+// TODO: Should not allow to call numeric operations such as `a.eq(b).add(3)`.
+export class LogicalOp<M> extends Ops<boolean, M> implements IExpr<boolean, M> {
+  readonly $type = 'EXPR' as const;
+  readonly _iexpr_types = iexprPhantomTypes<boolean, M>();
+
+  constructor(
+    private readonly left: IExpr<boolean, any>,
+    private readonly right: IExpr<boolean, any>
+  ) {
+    super();
+  }
+
+  toExpr(): Expr {
+    return {
+      $exprType: 'INFIX',
+      left: this.left,
+      right: this.right,
+      op: Op.AND,
+    };
+  }
+}
+
+type ModelOf<E> = E extends IExpr<any, infer M> ? M : never;
+type ModelsOf<Es extends any[]> = { [P in keyof Es]: ModelOf<Es[P]> }[number];
+
+export const and = <Ps extends IExpr<boolean, any>[]>(...preds: Ps): LogicalOp<ModelsOf<Ps>> => {
+  let pred = preds.reduce((left, right) => new LogicalOp(left, right));
+  return pred as LogicalOp<ModelsOf<Ps>>;
+};

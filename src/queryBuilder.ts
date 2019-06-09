@@ -46,8 +46,9 @@ export class QueryBuilder<R, Ms> implements IQueryBuilder<R, Ms> {
     return new QueryBuilder(query);
   }
 
-  where(..._preds: IExpr<boolean, Ms>[]): QueryBuilder<R, Ms> {
-    return unimplemented();
+  where(...preds: IExpr<boolean, Ms>[]): QueryBuilder<R, Ms> {
+    this.query.where = this.query.where.concat(preds);
+    return this;
   }
 
   groupBy(..._exprs: IExpr<any, Ms>[]): QueryBuilder<R, Ms> {

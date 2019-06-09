@@ -179,6 +179,7 @@ export interface Query<Models> {
   select: Selectable<any>[] | null;
   defaultSelect: ColumnList<Models>[];
   innerJoins: Joinable<any, any>[];
+  where: IExpr<boolean, Models>[];
 }
 
 export interface Connection {

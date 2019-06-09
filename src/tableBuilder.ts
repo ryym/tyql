@@ -141,6 +141,7 @@ export const newQuery = <M>(fromCols: ColumnList<M>, fromTable: string): Query<M
     select: null,
     defaultSelect: [fromCols],
     innerJoins: [],
+    where: [],
   };
 };
 

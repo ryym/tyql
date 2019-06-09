@@ -103,6 +103,7 @@ async function checkRunning() {
 
     const idAndNames = await Users()
       .select(Users.id, Users.user_name)
+      .where(Users.id.eq(1), Users.user_name.eq('hoge'))
       .load(conn);
     console.log(idAndNames);
   } finally {

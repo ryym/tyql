@@ -1,7 +1,9 @@
 import * as Knex from 'knex';
-import { Query, Selectable, IExpr } from './types';
+import { Query, Selectable, IExpr, Op } from './types';
 import { Quote } from './connection';
 import { mapRows } from './queryResultMapper';
+import { unreachable } from './unreachable';
+import { and } from './ops';
 
 export type BuildContext = {
   knex: Knex;
@@ -14,7 +16,8 @@ export const runQuery = async (query: Query<any>, ctx: BuildContext): Promise<an
   const q = constructQuery(builder, query, ctx);
 
   // TODO: Remove debug code.
-  console.log(q.toString());
+  const sql = q.toSQL();
+  console.log(sql.sql, sql.bindings);
 
   const rows = await q;
   return mapRows(query, rows);
@@ -27,6 +30,12 @@ export const constructQuery = (
 ): Knex.QueryBuilder => {
   const select = buildSelect(q.select || q.defaultSelect, ctx);
   builder = builder.from(q.from).select(...select);
+
+  if (q.where.length > 0) {
+    const where = buildWhere(q.where, ctx);
+    builder = builder.where(where);
+  }
+
   return builder;
 };
 
@@ -50,6 +59,11 @@ const buildSelect = (select: Selectable<any>[], ctx: BuildContext): Knex.Raw[] =
   });
 
   return raws;
+};
+
+const buildWhere = (where: IExpr<boolean, any>[], ctx: BuildContext): Knex.Raw => {
+  const pred = and(...where);
+  return buildExpr(pred, ctx);
 };
 
 const buildExpr = (iexpr: IExpr<any, any>, ctx: BuildContext): Knex.Raw => {
