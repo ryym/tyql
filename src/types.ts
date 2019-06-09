@@ -1,3 +1,8 @@
+// Note that some properties' name of the interfaces start with `$`.
+// This is because these interfaces may be used with dynamically generated types
+// whose property names are defined by user (e.g. column names).
+// We avoid possible name collisions by prefixing our property names by `$`.
+
 export interface ModelConfig<T> {
   readonly table: string;
   template(): T;
