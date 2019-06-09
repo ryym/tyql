@@ -29,7 +29,9 @@ export const constructQuery = (
   ctx: BuildContext
 ): Knex.QueryBuilder => {
   const select = buildSelect(q.select || q.defaultSelect, ctx);
-  builder = builder.from(q.from).select(...select);
+
+  const from = q.fromAlias ? `${q.from} AS ${q.fromAlias}` : q.from;
+  builder = builder.from(from).select(...select);
 
   if (q.where.length > 0) {
     const where = buildWhere(q.where, ctx);

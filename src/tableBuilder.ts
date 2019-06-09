@@ -126,9 +126,15 @@ const unimplemented = (): any => {
   throw new Error('unimplemented');
 };
 
-export const newQuery = <M>(fromCols: ColumnList<M>, fromTable: string): Query<M> => {
+// TODO: Should be `newQuery(modelColumnList, fromAlias)
+export const newQuery = <M>(
+  fromCols: ColumnList<M>,
+  fromTable: string,
+  fromAlias?: string
+): Query<M> => {
   return {
     from: fromTable,
+    fromAlias,
     select: null,
     defaultSelect: [fromCols],
     innerJoins: [],

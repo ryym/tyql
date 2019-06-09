@@ -180,6 +180,7 @@ export interface QueryBuilder<R, Ms> {
 
 export interface Query<Models> {
   from: string;
+  fromAlias?: string;
   select: Selectable<any>[] | null;
   defaultSelect: ColumnList<Models>[];
   innerJoins: Joinable<any, any>[];
