@@ -120,7 +120,8 @@ const makeRelationBuilders = <M, Rels extends RelsTemplate<M>>(
           columns: () => Object.values(rightColumns),
         }),
         $toJoin: (): JoinDefinition => ({
-          table: tableAlias,
+          tableName: rightModel.tyql.table,
+          tableAlias,
           on: rightCol.eq(leftCol),
         }),
       });

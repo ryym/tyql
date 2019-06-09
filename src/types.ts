@@ -138,7 +138,8 @@ export interface Joinable<M1, M2> {
 }
 
 export interface JoinDefinition {
-  table: string;
+  tableName: string;
+  tableAlias?: string;
   on: IExpr<any, any>;
 }
 

@@ -99,11 +99,16 @@ async function checkRunning() {
     const users = await Users().load(conn);
     console.log(users);
 
-    const idAndNames = await Users()
-      .select(Users.id, Users.user_name)
-      .where(Users.id.eq(1), Users.user_name.eq('hoge'))
+    const ids = await Users()
+      .select(Users.id)
+      .where(Users.id.eq(1))
       .load(conn);
-    console.log(idAndNames);
+    console.log(ids);
+
+    const userAndPosts = await Users()
+      .innerJoin(Users.posts)
+      .load(conn);
+    console.log(userAndPosts);
   } finally {
     conn.close();
   }

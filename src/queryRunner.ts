@@ -1,5 +1,5 @@
 import * as Knex from 'knex';
-import { Query, Selectable, IExpr, Op } from './types';
+import { Query, Selectable, IExpr, Op, Joinable } from './types';
 import { Quote } from './connection';
 import { mapRows } from './queryResultMapper';
 import { unreachable } from './unreachable';
@@ -36,6 +36,12 @@ export const constructQuery = (
     builder = builder.where(where);
   }
 
+  if (q.innerJoins.length > 0) {
+    buildJoins(q.innerJoins, ctx).forEach(([table, on]) => {
+      builder = builder.innerJoin(table, on);
+    });
+  }
+
   return builder;
 };
 
@@ -64,6 +70,14 @@ const buildSelect = (select: Selectable<any>[], ctx: BuildContext): Knex.Raw[] =
 const buildWhere = (where: IExpr<boolean, any>[], ctx: BuildContext): Knex.Raw => {
   const pred = and(...where);
   return buildExpr(pred, ctx);
+};
+
+const buildJoins = (joins: Joinable<any, any>[], ctx: BuildContext): [string, Knex.Raw][] => {
+  return joins.map(j => {
+    const def = j.$toJoin();
+    const table = def.tableAlias ? `${def.tableName} AS ${def.tableAlias}` : def.tableName;
+    return [table, buildExpr(def.on, ctx)];
+  });
 };
 
 const buildExpr = (iexpr: IExpr<any, any>, ctx: BuildContext): Knex.Raw => {
