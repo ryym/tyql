@@ -73,7 +73,7 @@ export async function checkTypes() {
   Users()
     .innerJoin(Users.posts)
     // .where(Users.id.add(3)) // expected error
-    .where(Users.id.eq(Users.posts.id), Users.id.eq(3), Users.id.in(1, 2, 3))
+    .where(Users.id.eq(Users.id.add(Users.posts.id)), Users.id.eq(3), Users.id.in(1, 2, 3))
     .groupBy(Users.posts.id)
     .orderBy(Users.id.asc(), Users.posts.title.desc());
 

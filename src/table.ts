@@ -1,5 +1,5 @@
 import {
-  ColumnExpr,
+  // ColumnExpr,
   QueryBuilder,
   Ordering,
   TableRel,
@@ -8,6 +8,8 @@ import {
   Connection,
   TableRelBuilder,
   IColumn,
+  ColumnExpr,
+  iexprPhantomTypes,
 } from './types';
 import { Ops } from './ops';
 
@@ -50,6 +52,7 @@ export interface TableActions<M> extends QueryBuilder<M, M>, ColumnList<M> {
 
 export class Column<V, M> extends Ops<V, M> implements IColumn<V, M> {
   readonly $type = 'EXPR' as const;
+  readonly _iexpr_types = iexprPhantomTypes<V, M>();
 
   readonly modelClass: ModelClass<M>;
   readonly tableName: string;
@@ -64,10 +67,9 @@ export class Column<V, M> extends Ops<V, M> implements IColumn<V, M> {
     this.fieldName = conf.fieldName;
   }
 
-  toExpr(): ColumnExpr<V, M> {
+  toExpr(): ColumnExpr {
     return {
       $exprType: 'COLUMN',
-      modelClass: this.modelClass,
       tableName: this.tableName,
       columnName: this.columnName,
       fieldName: this.fieldName,

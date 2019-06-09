@@ -1,4 +1,4 @@
-import { Aliased, InfixExpr, Op, IExpr, Expr, LitExpr } from './types';
+import { Aliased, Op, IExpr, Expr, iexprPhantomTypes } from './types';
 
 const todo = (): any => null;
 
@@ -9,7 +9,8 @@ const isIExpr = (v: any): v is IExpr<any, any> => {
 export abstract class Ops<V, M> implements IExpr<V, M> {
   $type = 'EXPR' as const;
 
-  abstract toExpr(): Expr<V, M>;
+  abstract readonly _iexpr_types: [V, M];
+  abstract toExpr(): Expr;
 
   as(_alias: string): Aliased<V, M> {
     return todo();
@@ -40,6 +41,7 @@ export abstract class Ops<V, M> implements IExpr<V, M> {
 
 export class InfixOp<V, M> extends Ops<V, M> implements IExpr<V, M> {
   readonly $type = 'EXPR' as const;
+  readonly _iexpr_types = iexprPhantomTypes<V, M>();
 
   constructor(
     private readonly left: IExpr<any, M>,
@@ -49,7 +51,7 @@ export class InfixOp<V, M> extends Ops<V, M> implements IExpr<V, M> {
     super();
   }
 
-  toExpr(): InfixExpr<V, M> {
+  toExpr(): Expr {
     return {
       $exprType: 'INFIX',
       left: this.left,
@@ -61,12 +63,13 @@ export class InfixOp<V, M> extends Ops<V, M> implements IExpr<V, M> {
 
 export class Literal<V> extends Ops<V, never> implements IExpr<V, never> {
   readonly $type = 'EXPR' as const;
+  readonly _iexpr_types = iexprPhantomTypes<V, never>();
 
   constructor(private readonly value: V) {
     super();
   }
 
-  toExpr(): LitExpr<V> {
+  toExpr(): Expr {
     return {
       $exprType: 'LIT',
       value: this.value,

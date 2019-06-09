@@ -7,6 +7,18 @@ export interface ModelClass<T> {
   tyql: ModelConfig<T>;
 }
 
+export interface IExpr<V, M> {
+  readonly $type: 'EXPR';
+
+  // This property exists just to hold the types V and M.
+  // This allows us to construct queries with type-safe manner.
+  readonly _iexpr_types: [V, M];
+
+  toExpr(): Expr;
+}
+
+export const iexprPhantomTypes = <V, M>(): [V, M] => null as any;
+
 export enum Op {
   EQ = '=',
 }
@@ -19,86 +31,78 @@ export enum OpSufix {
   IS_NULL = 'IS NULL',
 }
 
-export interface ColumnExpr<V, M> {
+export interface ColumnExpr {
   readonly $exprType: 'COLUMN';
-  readonly _value_phantom?: V;
   readonly tableName: string;
   readonly columnName: string;
   readonly fieldName: string;
-  readonly modelClass: ModelClass<M>;
 }
 
-export interface LitExpr<V> {
+export interface LitExpr {
   readonly $exprType: 'LIT';
-  readonly value: V;
+  readonly value: any;
 }
 
-export interface PrefixExpr<V, M> {
+export interface PrefixExpr {
   readonly $exprType: 'PREFIX';
-  readonly _value_phantom?: V;
   op: Op;
-  expr: IExpr<any, M>;
+  expr: IExpr<any, any>;
 }
 
-export interface InfixExpr<V, M> {
+export interface InfixExpr {
   readonly $exprType: 'INFIX';
-  readonly _value_phantom?: V;
-  left: IExpr<any, M>;
+  left: IExpr<any, any>;
   op: Op;
-  right: IExpr<any, M>;
+  right: IExpr<any, any>;
 }
 
-export interface SufixExpr<V, M> {
+export interface SufixExpr {
   readonly $exprType: 'SUFIX';
-  readonly _value_phantom?: V;
-  expr: IExpr<any, M>;
+  expr: IExpr<any, any>;
   op: Op;
 }
 
-export interface InExpr<V, M> {
+export interface InExpr {
   readonly $exprType: 'IN';
-  left: IExpr<V, M>;
-  right: IExpr<V, any>[];
+  left: IExpr<any, any>;
+  right: IExpr<any, any>[];
   not: boolean;
 }
 
-export interface BetweenExpr<V, M> {
+export interface BetweenExpr {
   readonly $exprType: 'BETWEEN';
-  value: IExpr<V, M>;
-  start: IExpr<V, M>;
-  end: IExpr<V, M>;
+  value: IExpr<any, any>;
+  start: IExpr<any, any>;
+  end: IExpr<any, any>;
   not: boolean;
 }
 
-export interface QueryExpr<V> {
+export interface QueryExpr {
   readonly $exprType: 'QUERY';
-  _value?: V; // ??
 }
 
-export type Expr<V, M> =
-  | ColumnExpr<V, M>
-  | LitExpr<V>
-  | PrefixExpr<V, M>
-  | InfixExpr<V, M>
-  | SufixExpr<V, M>
-  | InExpr<V, M>
-  | BetweenExpr<V, M>
-  | QueryExpr<V>;
-
-export interface IExpr<V, M> {
-  readonly $type: 'EXPR';
-  toExpr(): Expr<V, M>;
-}
+// These types are internal representation and users don't use this directly
+// so they do not have types it represents.
+export type Expr =
+  | ColumnExpr
+  | LitExpr
+  | PrefixExpr
+  | InfixExpr
+  | SufixExpr
+  | InExpr
+  | BetweenExpr
+  | QueryExpr;
 
 export interface Aliased<V, M> {
   readonly $type: 'ALIASED';
+  readonly _aliased_phantom: [V, M];
   alias: string;
-  expr: Expr<V, M>;
+  expr: Expr;
 }
 
 export interface IColumn<V, M> extends IExpr<V, M> {
   modelClass: ModelClass<M>;
-  toExpr(): ColumnExpr<V, M>;
+  toExpr(): ColumnExpr;
 }
 
 // Special interface to bundle multiple columns as one expression.
@@ -114,12 +118,13 @@ export enum Order {
 
 export interface Ordering<M> {
   order: Order;
-  expr: Expr<any, M>;
+  _ordering_phantom: [M];
+  expr: Expr;
 }
 
 export interface AliasedQuery {
   alias: string;
-  query: QueryExpr<any>;
+  query: QueryExpr;
 }
 
 export interface SchemaTable<M> {
@@ -141,7 +146,7 @@ export interface TableRelBuilder<V, M1, M2> {
 
 export interface TableJoin<M> extends ColumnList<M> {
   $joinType: 'TABLE_JOIN';
-  on: Expr<boolean, M>;
+  on: IExpr<boolean, M>;
 }
 
 export type Selectable<M> = IExpr<any, M> | Aliased<any, M> | ColumnList<M>;
