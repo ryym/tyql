@@ -101,7 +101,7 @@ async function checkRunning() {
 
     const ids = await Users.$query()
       .select(Users.id)
-      .where(Users.id.eq(1))
+      .where(Users.id.in(1, 2, 3))
       .load(conn);
     console.log(ids);
 

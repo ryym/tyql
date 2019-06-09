@@ -135,6 +135,7 @@ const appendExpr = (st: QueryState, iexpr: IExpr<any, any>, ctx: BuildContext) =
         }
         appendExpr(st, v, ctx);
       });
+      st.append(')');
       return;
 
     case 'BETWEEN':

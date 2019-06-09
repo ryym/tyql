@@ -32,9 +32,14 @@ export abstract class Ops<V, M> implements IExpr<V, M> {
     return new InfixOp<V, M | M2>(this, Op.ADD, expr);
   }
 
-  // TODO: Return InOp
-  in<M2 = M>(..._vals: V[] | IExpr<V, M | M2>[]): IExpr<boolean, M | M2> {
-    return todo();
+  in<M2 = M>(...vals: V[] | IExpr<V, M | M2>[]): InOp<M | M2> {
+    if (vals.length === 0) {
+      throw new Error('[Tyql]: Cannot pass empty arguments to IN');
+    }
+    const candidates = isIExpr(vals[0])
+      ? (vals as IExpr<V, M | M2>[])
+      : (vals as V[]).map((v: any) => new Literal(v));
+    return new InOp<M | M2>(this, candidates);
   }
 
   // Other operations...
@@ -74,6 +79,24 @@ export class Literal<V> extends Ops<V, never> implements IExpr<V, never> {
     return {
       $exprType: 'LIT',
       value: this.value,
+    };
+  }
+}
+
+export class InOp<M> extends Ops<boolean, M> implements IExpr<boolean, M> {
+  readonly $type = 'EXPR' as const;
+  readonly _iexpr_types = iexprPhantomTypes<boolean, M>();
+
+  constructor(private readonly value: IExpr<any, M>, private readonly candidates: IExpr<any, M>[]) {
+    super();
+  }
+
+  toExpr(): Expr {
+    return {
+      $exprType: 'IN',
+      value: this.value,
+      candidates: this.candidates,
+      not: false,
     };
   }
 }
