@@ -21,6 +21,11 @@ export const iexprPhantomTypes = <V, M>(): [V, M] => null as any;
 
 export enum Op {
   EQ = '=',
+  ADD = '+',
+  IN = 'IN',
+  BETWEEN = 'BETWEEN',
+  AND = 'AND',
+  OR = 'OR',
 }
 
 export enum OpPrefix {
@@ -64,8 +69,8 @@ export interface SufixExpr {
 
 export interface InExpr {
   readonly $exprType: 'IN';
-  left: IExpr<any, any>;
-  right: IExpr<any, any>[];
+  value: IExpr<any, any>;
+  candidates: IExpr<any, any>[];
   not: boolean;
 }
 
@@ -83,15 +88,8 @@ export interface QueryExpr {
 
 // These types are internal representation and users don't use this directly
 // so they do not have types it represents.
-export type Expr =
-  | ColumnExpr
-  | LitExpr
-  | PrefixExpr
-  | InfixExpr
-  | SufixExpr
-  | InExpr
-  | BetweenExpr
-  | QueryExpr;
+// TODO: Add QueryExpr.
+export type Expr = ColumnExpr | LitExpr | PrefixExpr | InfixExpr | SufixExpr | InExpr | BetweenExpr;
 
 export interface Aliased<V, M> {
   readonly $type: 'ALIASED';

@@ -74,8 +74,53 @@ const appendExpr = (st: QueryState, iexpr: IExpr<any, any>, ctx: BuildContext) =
     case 'COLUMN':
       st.append(`${ctx.quote(expr.tableName)}.${ctx.quote(expr.columnName)}`);
       return;
+
+    case 'LIT':
+      st.append('?', expr.value);
+      return;
+
+    case 'INFIX':
+      appendExpr(st, expr.left, ctx);
+      st.append(` ${expr.op} `);
+      appendExpr(st, expr.right, ctx);
+      return;
+
+    case 'PREFIX':
+      st.append(`${expr.op} `);
+      appendExpr(st, expr.expr, ctx);
+      return;
+
+    case 'SUFIX':
+      appendExpr(st, expr.expr, ctx);
+      st.append(` ${expr.op}`);
+      return;
+
+    case 'IN':
+      appendExpr(st, expr.value, ctx);
+      if (expr.not) {
+        st.append(' NOT');
+      }
+      st.append(` ${Op.IN} (`);
+      expr.candidates.forEach((v, i) => {
+        if (i > 0) {
+          st.append(', ');
+        }
+        appendExpr(st, v, ctx);
+      });
+      return;
+
+    case 'BETWEEN':
+      appendExpr(st, expr.value, ctx);
+      if (expr.not) {
+        st.append(' NOT');
+      }
+      st.append(` ${Op.BETWEEN} `);
+      appendExpr(st, expr.start, ctx);
+      st.append(' AND ');
+      appendExpr(st, expr.end, ctx);
+      return;
+
     default:
-      // TODO: exhaustive check.
-      throw new Error('unimplemented');
+      unreachable(expr);
   }
 };
