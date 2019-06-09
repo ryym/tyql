@@ -109,6 +109,9 @@ async function checkRunning() {
       .innerJoin(Users.posts)
       .load(conn);
     console.log(userAndPosts);
+
+    const [posts, comments] = await Users.$rels(Users.posts, Users.comments).loadMaps(users, conn);
+    console.log(posts, comments);
   } finally {
     conn.close();
   }

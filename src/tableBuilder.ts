@@ -1,4 +1,4 @@
-import { ModelClass, ColumnList, Query, JoinDefinition } from './types';
+import { ModelClass, ColumnList, Query, JoinDefinition, TableRel } from './types';
 import {
   Table,
   FieldNames,
@@ -9,6 +9,7 @@ import {
   TableBase,
 } from './table';
 import { QueryBuilder } from './queryBuilder';
+import { RelationLoader } from './relationLoader';
 
 export const rel = <M1, M2, C2 extends FieldNames<M2>>(
   rightModel: ModelClass<M2>,
@@ -60,7 +61,9 @@ export function table<M, Rels extends RelsTemplate<M>>(
   const base: TableBase<M> = {
     $all: () => columnList,
     $query: () => new QueryBuilder<M, M>(newQuery(columnList, tableName)),
-    $rels: () => unimplemented(),
+    $rels: <RS extends TableRel<any, M, any>[]>(...rels: RS): RelationLoader<M, RS> => {
+      return new RelationLoader(rels);
+    },
   };
 
   return Object.assign({}, columns, relations, base);
@@ -120,10 +123,6 @@ const makeRelationBuilders = <M, Rels extends RelsTemplate<M>>(
     },
     {} as RelationBuilders<M, Rels>
   );
-};
-
-const unimplemented = (): any => {
-  throw new Error('unimplemented');
 };
 
 // TODO: Should be `newQuery(modelColumnList, fromAlias)

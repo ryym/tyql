@@ -3,13 +3,13 @@ import {
   Ordering,
   ColumnList,
   ModelClass,
-  Connection,
   TableRel,
   IColumn,
   ColumnExpr,
   iexprPhantomTypes,
 } from './types';
 import { Ops } from './ops';
+import { RelationLoader } from './relationLoader';
 
 type MethodNames<T> = { [P in keyof T]: T[P] extends Function ? P : never }[keyof T];
 
@@ -36,14 +36,6 @@ export interface TableBase<M> {
 }
 
 export type Table<M, Rels extends AnyRelationBuilders<M>> = TableBase<M> & Rels & ColumnSet<M>;
-
-export interface RelationLoader<M, RS extends TableRel<any, M, any>[]> {
-  loadMaps(records: M[], conn: Connection): Promise<RelsMap<M, RS>>;
-}
-
-type RelsMap<M1, RS> = {
-  [K in keyof RS]: RS[K] extends TableRel<infer V, M1, infer M2> ? Map<V, M2[]> : never
-};
 
 export class Column<V, M> extends Ops<V, M> implements IColumn<V, M> {
   readonly $type = 'EXPR' as const;
