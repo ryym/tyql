@@ -1,4 +1,4 @@
-import { Ordering, ModelClass, IColumn, ColumnExpr, iexprPhantomTypes } from './types';
+import { Ordering, ModelClass, IColumn, ColumnExpr, iexprPhantomTypes, ColumnList } from './types';
 import { Ops } from './ops';
 
 type MethodNames<T> = { [P in keyof T]: T[P] extends Function ? P : never }[keyof T];
@@ -51,3 +51,32 @@ export type ColumnConfig = {
   columnName: string;
   fieldName: string;
 };
+
+export class ModelColumnList<M> implements ColumnList<M> {
+  $type = 'COLUMN_LIST' as const;
+
+  private readonly _columns: Column<any, M>[];
+
+  constructor(private readonly modelClass: ModelClass<M>, private readonly _tableAlias?: string) {
+    const tmpl = modelClass.tyql.template();
+    this._columns = Object.keys(tmpl).map(name => {
+      return new Column(modelClass, {
+        tableName: _tableAlias || this.tableName(),
+        fieldName: name,
+        columnName: name, // TODO: Convert
+      });
+    });
+  }
+
+  tableAlias(): string | undefined {
+    return this._tableAlias;
+  }
+
+  tableName(): string {
+    return this.modelClass.tyql.table;
+  }
+
+  columns(): Column<any, M>[] {
+    return this._columns;
+  }
+}

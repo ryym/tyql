@@ -1,5 +1,5 @@
 import { ModelClass, ColumnList, Query, JoinDefinition, TableRel } from './types';
-import { FieldNames, FieldNamesOfType, Column, Fields } from './column';
+import { FieldNames, FieldNamesOfType, Column, Fields, ModelColumnList } from './column';
 import { QueryBuilder } from './queryBuilder';
 import { RelationLoader } from './relationLoader';
 
@@ -58,34 +58,25 @@ export function table<M, Rels extends RelsTemplate<M>>(
   config: TableConfig<M, Rels> = {}
 ): Table<M, RelationBuilders<M, Rels>> {
   const tableName = modelClass.tyql.table;
-  const columns = newColumnSet(tableName, modelClass);
-  const relations = makeRelationBuilders(tableName, columns, config.rels || ({} as Rels));
-
-  const columnList: ColumnList<M> = {
-    $type: 'COLUMN_LIST' as const,
-    columns: () => Object.values(columns),
-  };
+  const columnList = new ModelColumnList(modelClass);
+  const columnSet = newColumnSet(columnList);
+  const relations = makeRelationBuilders(tableName, columnSet, config.rels || ({} as Rels));
 
   const base: TableBase<M> = {
     $all: () => columnList,
-    $query: () => new QueryBuilder<M, M>(newQuery(columnList, tableName)),
+    $query: () => new QueryBuilder<M, M>(newQuery(columnList)),
     $rels: <RS extends TableRel<any, M, any>[]>(...rels: RS): RelationLoader<M, RS> => {
       return new RelationLoader(rels);
     },
   };
 
-  return Object.assign({}, columns, relations, base);
+  return Object.assign({}, columnSet, relations, base);
 }
 
-const newColumnSet = <M>(tableName: string, modelClass: ModelClass<M>): ColumnSet<M> => {
-  const tmpl = modelClass.tyql.template();
-  return Object.keys(tmpl).reduce(
-    (cols, name) => {
-      (cols as any)[name] = new Column(modelClass, {
-        tableName,
-        fieldName: name,
-        columnName: name, // TODO: Convert
-      });
+const newColumnSet = <M>(columnList: ModelColumnList<M>): ColumnSet<M> => {
+  return columnList.columns().reduce(
+    (cols, col) => {
+      (cols as any)[col.fieldName] = col;
       return cols;
     },
     {} as ColumnSet<M>
@@ -102,24 +93,22 @@ const makeRelationBuilders = <M, Rels extends RelsTemplate<M>>(
       const { leftColName, rightColName, rightModel } = relsTmpl[name];
 
       const tableAlias = `${leftTableName}_${name}`;
-      const rightColumns = newColumnSet(tableAlias, rightModel);
+      const rightColumnList = new ModelColumnList(rightModel, tableAlias);
+      const rightColumnSet = newColumnSet(rightColumnList);
       const leftCol = (leftColumns as any)[leftColName];
 
-      const originalRightCol = rightColumns[rightColName as any];
+      const originalRightCol = rightColumnSet[rightColName as any];
       const rightCol = new Column<any, any>(rightModel, {
         tableName: tableAlias,
         fieldName: originalRightCol.fieldName,
         columnName: originalRightCol.columnName,
       });
 
-      const relBuilder: RelationBuilder<any, M, any> = Object.assign({}, rightColumns, {
+      const relBuilder: RelationBuilder<any, M, any> = Object.assign({}, rightColumnSet, {
         _joinable_types: null as any,
         $leftCol: leftCol,
         $rightCol: rightCol,
-        $all: () => ({
-          $type: 'COLUMN_LIST' as const,
-          columns: () => Object.values(rightColumns),
-        }),
+        $all: () => rightColumnList,
         $toJoin: (): JoinDefinition => ({
           tableName: rightModel.tyql.table,
           tableAlias,
@@ -133,17 +122,12 @@ const makeRelationBuilders = <M, Rels extends RelsTemplate<M>>(
   );
 };
 
-// TODO: Should be `newQuery(modelColumnList, fromAlias)
-export const newQuery = <M>(
-  fromCols: ColumnList<M>,
-  fromTable: string,
-  fromAlias?: string
-): Query<M> => {
+export const newQuery = <M>(from: ColumnList<M>): Query<M> => {
   return {
-    from: fromTable,
-    fromAlias,
+    from: from.tableName(),
+    fromAlias: from.tableAlias(),
     select: null,
-    defaultSelect: [fromCols],
+    defaultSelect: [from],
     innerJoins: [],
     where: [],
   };

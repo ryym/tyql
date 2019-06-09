@@ -12,9 +12,7 @@ export class RelationLoader<M, RS extends TableRel<any, M, any>[]> {
 
   async loadMaps(records: M[], conn: Connection): Promise<RelsMap<M, RS>> {
     const queries = this.rels.map(rel => {
-      const q = new QueryBuilder<any, any>(
-        newQuery(rel.$all(), rel.$rightCol.modelClass.tyql.table, rel.$rightCol.toExpr().tableName)
-      );
+      const q = new QueryBuilder<any, any>(newQuery(rel.$all()));
 
       // TODO: Should `rel.$rightCol.in(values)`.
       const key = rel.$leftCol.toExpr().fieldName;

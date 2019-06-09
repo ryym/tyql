@@ -112,6 +112,8 @@ export interface IColumn<V, M> extends IExpr<V, M> {
 export interface ColumnList<M> {
   readonly $type: 'COLUMN_LIST';
   columns(): IColumn<any, M>[];
+  tableName(): string;
+  tableAlias(): string | undefined;
 }
 
 export enum Order {
