@@ -1,46 +1,50 @@
 import { table, rel } from './table';
 import { KnexConnection } from './connection';
+import { camelToSnake } from './column';
 
 class User {
   static tyql = {
     table: 'users',
     template: () => new User(0, 'alice'),
+    columnNameRule: camelToSnake,
   };
-  constructor(public id: number, public user_name: string) {}
+  constructor(public id: number, public userName: string) {}
 }
 
 class Post {
   static tyql = {
     table: 'posts',
     template: () => new Post(0, 0, ''),
+    columnNameRule: camelToSnake,
   };
-  constructor(public id: number, public author_id: number, public title: string) {}
+  constructor(public id: number, public authorId: number, public title: string) {}
 }
 
 class Comment {
   static tyql = {
     table: 'comments',
     template: () => new Comment(0, 0, ''),
+    columnNameRule: camelToSnake,
   };
-  constructor(public id: number, public commenter_id: number, public content: string) {}
+  constructor(public id: number, public commenterId: number, public content: string) {}
 }
 
 export const Users = table(User, {
   rels: {
-    posts: rel(Post, 'author_id', 'id'),
-    comments: rel(Comment, 'commenter_id', 'id'),
+    posts: rel(Post, 'authorId', 'id'),
+    comments: rel(Comment, 'commenterId', 'id'),
   },
 });
 
 export const Posts = table(Post, {
   rels: {
-    author: rel(User, 'id', 'author_id'),
+    author: rel(User, 'id', 'authorId'),
   },
 });
 
 export const Comments = table(Comment, {
   rels: {
-    commenter: rel(User, 'id', 'commenter_id'),
+    commenter: rel(User, 'id', 'commenterId'),
   },
 });
 
@@ -53,7 +57,7 @@ export async function checkTypes() {
   console.log(users);
 
   const idAndNames = await Users.$query()
-    .select(Users.id, Users.user_name)
+    .select(Users.id, Users.userName)
     .load(conn);
   console.log(idAndNames);
 
@@ -86,7 +90,7 @@ export async function checkTypes() {
   // Users().where(Users.id.eq(Posts.id));
 }
 
-async function checkRunning() {
+export async function checkRunning() {
   const conn = new KnexConnection({
     client: 'pg',
     connection: {

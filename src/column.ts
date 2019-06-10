@@ -59,11 +59,12 @@ export class ModelColumnList<M> implements ColumnList<M> {
 
   constructor(private readonly modelClass: ModelClass<M>, private readonly _tableAlias?: string) {
     const tmpl = modelClass.tyql.template();
+    const convert = modelClass.tyql.columnNameRule;
     this._columns = Object.keys(tmpl).map(name => {
       return new Column(modelClass, {
         tableName: _tableAlias || this.tableName(),
         fieldName: name,
-        columnName: name, // TODO: Convert
+        columnName: convert ? convert(name) : name,
       });
     });
   }
@@ -80,3 +81,17 @@ export class ModelColumnList<M> implements ColumnList<M> {
     return this._columns;
   }
 }
+
+// Simple implementation.
+export const camelToSnake = (word: string): string => {
+  let snake = '';
+  for (let c of word) {
+    const lowerC = c.toLowerCase();
+    if (c === lowerC) {
+      snake += c;
+    } else {
+      snake += `_${lowerC}`;
+    }
+  }
+  return snake;
+};

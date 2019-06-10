@@ -3,13 +3,14 @@
 // whose property names are defined by user (e.g. column names).
 // We avoid possible name collisions by prefixing our property names by `$`.
 
-export interface ModelConfig<T> {
+export interface ModelConfig<M> {
   readonly table: string;
-  template(): T;
+  template(): M;
+  columnNameRule?: (name: string) => string;
 }
 
-export interface ModelClass<T> {
-  tyql: ModelConfig<T>;
+export interface ModelClass<M> {
+  tyql: ModelConfig<M>;
 }
 
 export interface IExpr<V, M> {
