@@ -127,7 +127,7 @@ const appendExpr = (st: QueryState, iexpr: IExpr<any, any>, ctx: BuildContext) =
 
     case 'IN':
       appendExpr(st, expr.value, ctx);
-      if (expr.not) {
+      if (!expr.positive) {
         st.append(' NOT');
       }
       st.append(` ${Op.IN} (`);
@@ -142,7 +142,7 @@ const appendExpr = (st: QueryState, iexpr: IExpr<any, any>, ctx: BuildContext) =
 
     case 'BETWEEN':
       appendExpr(st, expr.value, ctx);
-      if (expr.not) {
+      if (!expr.positive) {
         st.append(' NOT');
       }
       st.append(` ${Op.BETWEEN} `);

@@ -32,6 +32,8 @@ export enum Op {
   BETWEEN = 'BETWEEN',
   AND = 'AND',
   OR = 'OR',
+  LIKE = 'LIKE',
+  NOT_LIKE = 'NOT LIKE',
 }
 
 export enum OpPrefix {
@@ -77,7 +79,7 @@ export interface InExpr {
   readonly $exprType: 'IN';
   value: IExpr<any, any>;
   candidates: IExpr<any, any>[];
-  not: boolean;
+  positive: boolean;
 }
 
 export interface BetweenExpr {
@@ -85,7 +87,7 @@ export interface BetweenExpr {
   value: IExpr<any, any>;
   start: IExpr<any, any>;
   end: IExpr<any, any>;
-  not: boolean;
+  positive: boolean;
 }
 
 export interface QueryExpr {

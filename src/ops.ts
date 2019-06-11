@@ -1,9 +1,13 @@
-import { Aliased, Op, IExpr, Expr, iexprPhantomTypes } from './types';
+import { Aliased, Op, IExpr, Expr, iexprPhantomTypes, BetweenExpr } from './types';
 
 const todo = (): any => null;
 
 const isIExpr = (v: any): v is IExpr<any, any> => {
   return v.$type === 'EXPR';
+};
+
+const wrapLit = <V, M>(v: V | IExpr<V, M>): IExpr<V, M> => {
+  return isIExpr(v) ? v : new Literal(v);
 };
 
 export abstract class Ops<V, M> implements IExpr<V, M> {
@@ -20,16 +24,26 @@ export abstract class Ops<V, M> implements IExpr<V, M> {
   // M2 が any に推論されてしまう。それを防ぐために M2 = M としてる。
   // メソッド定義を overload する事でも防げるはずだけど、面倒なので。
   eq<M2 = M>(val: V | IExpr<V, M2>): InfixOp<boolean, M | M2> {
-    const expr = isIExpr(val) ? val : new Literal(val);
-    return new InfixOp<boolean, M | M2>(this, Op.EQ, expr);
+    return this.infix<boolean, M2>(Op.EQ, val);
   }
 
   // 本来は特定の型でしか呼び出せないはずだけど、
   // そこまでやると RDB ごとにも違いそうだし無視する。
   // SQL のシンタックス的に問題なければひとまずOK。
   add<M2 = M>(val: V | IExpr<V, M2>): InfixOp<V, M | M2> {
-    const expr = isIExpr(val) ? val : new Literal(val);
-    return new InfixOp<V, M | M2>(this, Op.ADD, expr);
+    return this.infix<V, M2>(Op.ADD, val);
+  }
+
+  like<M2 = M>(val: V | IExpr<V, M2>): InfixOp<boolean, M | M2> {
+    return this.infix<boolean, M2>(Op.LIKE, val);
+  }
+
+  notLike<M2 = M>(val: V | IExpr<V, M2>): InfixOp<boolean, M | M2> {
+    return this.infix<boolean, M2>(Op.NOT_LIKE, val);
+  }
+
+  private infix<U, M2 = M>(op: Op, val: V | IExpr<any, any>): InfixOp<U, M | M2> {
+    return new InfixOp<U, M | M2>(this, op, wrapLit(val));
   }
 
   in<M2 = M>(...vals: V[] | IExpr<V, M | M2>[]): InOp<M | M2> {
@@ -40,6 +54,21 @@ export abstract class Ops<V, M> implements IExpr<V, M> {
       ? (vals as IExpr<V, M | M2>[])
       : (vals as V[]).map((v: any) => new Literal(v));
     return new InOp<M | M2>(this, candidates);
+  }
+
+  notIn<M2 = M>(...vals: V[] | IExpr<V, M | M2>[]): InOp<M | M2> {
+    return this.in(...vals).positive(false);
+  }
+
+  between<M2 = M, M3 = M>(start: V | IExpr<V, M2>, end: V | IExpr<V, M3>): BetweenOp<M | M2 | M3> {
+    return new BetweenOp<M | M2 | M3>(this, wrapLit(start), wrapLit(end));
+  }
+
+  notBetween<M2 = M, M3 = M>(
+    start: V | IExpr<V, M2>,
+    end: V | IExpr<V, M3>
+  ): BetweenOp<M | M2 | M3> {
+    return this.between(start, end).positive(false);
   }
 
   // Other operations...
@@ -86,9 +115,15 @@ export class Literal<V> extends Ops<V, never> implements IExpr<V, never> {
 export class InOp<M> extends Ops<boolean, M> implements IExpr<boolean, M> {
   readonly $type = 'EXPR' as const;
   readonly _iexpr_types = iexprPhantomTypes<boolean, M>();
+  private _positive: boolean = true;
 
   constructor(private readonly value: IExpr<any, M>, private readonly candidates: IExpr<any, M>[]) {
     super();
+  }
+
+  positive(yes: boolean): InOp<M> {
+    this._positive = yes;
+    return this;
   }
 
   toExpr(): Expr {
@@ -96,7 +131,36 @@ export class InOp<M> extends Ops<boolean, M> implements IExpr<boolean, M> {
       $exprType: 'IN',
       value: this.value,
       candidates: this.candidates,
-      not: false,
+      positive: this._positive,
+    };
+  }
+}
+
+export class BetweenOp<M> extends Ops<boolean, M> implements IExpr<boolean, M> {
+  readonly $type = 'EXPR' as const;
+  readonly _iexpr_types = iexprPhantomTypes<boolean, M>();
+  private _positive: boolean = true;
+
+  constructor(
+    private readonly value: IExpr<any, M>,
+    private readonly start: IExpr<any, M>,
+    private readonly end: IExpr<any, M>
+  ) {
+    super();
+  }
+
+  positive(yes: boolean): BetweenOp<M> {
+    this._positive = yes;
+    return this;
+  }
+
+  toExpr(): BetweenExpr {
+    return {
+      $exprType: 'BETWEEN',
+      value: this.value,
+      start: this.start,
+      end: this.end,
+      positive: this._positive,
     };
   }
 }

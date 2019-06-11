@@ -8,6 +8,10 @@ class User {
     template: () => new User(0, 'alice'),
     columnNameRule: camelToSnake,
   };
+
+  public email: string = '';
+  public createdAt: Date = new Date();
+
   constructor(public id: number, public userName: string) {}
 }
 
@@ -116,6 +120,19 @@ export async function checkRunning() {
 
     const [posts, comments] = await Users.$rels(Users.posts, Users.comments).loadMaps(users, conn);
     console.log(posts, comments);
+
+    const cols = await Users.$query()
+      .where(
+        Users.email.like('%gmail%'),
+        Users.email.notLike('%hoge%'),
+        Users.email.like(Users.userName), // lit('%').concat(Users.userName) ?
+        Users.id.between(10, 30),
+        Users.userName.notBetween('a', 'z'),
+        Users.id.in(1, 3, 10),
+        Users.id.notIn(50, 10, 100)
+      )
+      .load(conn);
+    console.log('WHERE', cols);
   } finally {
     conn.close();
   }
