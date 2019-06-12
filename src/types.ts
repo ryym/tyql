@@ -160,29 +160,6 @@ export interface TableRel<V, M1, M2> extends Joinable<M1, M2> {
 
 export type Selectable<M> = IExpr<any, M> | Aliased<any, M> | ColumnList<M>;
 
-// Perhaps Unnecessary interface?
-export interface QueryBuilder<R, Ms> {
-  select<Sels extends Selectable<Ms>[]>(...sels: Sels): QueryBuilder<Select<ValuesOf<Sels>>, Ms>;
-
-  innerJoin<M1 extends Ms, M2>(join: Joinable<M1, M2>): QueryBuilder<AddColumn<R, M2>, Ms | M2>;
-
-  where(...preds: IExpr<boolean, Ms>[]): QueryBuilder<R, Ms>;
-
-  groupBy(...exprs: IExpr<any, Ms>[]): QueryBuilder<R, Ms>;
-
-  having(...preds: IExpr<boolean, Ms>[]): QueryBuilder<R, Ms>;
-
-  orderBy(...ords: Ordering<Ms>[]): QueryBuilder<R, Ms>;
-
-  limit(n: number): QueryBuilder<R, Ms>;
-
-  offset(n: number): QueryBuilder<R, Ms>;
-
-  as(alias: string): AliasedQuery;
-
-  load(conn: Connection): Promise<ResultRowType<R>[]>;
-}
-
 export interface Query<Models> {
   from: string;
   fromAlias?: string;

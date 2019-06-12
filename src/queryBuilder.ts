@@ -1,5 +1,4 @@
 import {
-  QueryBuilder as IQueryBuilder,
   Selectable,
   Select,
   ValuesOf,
@@ -17,7 +16,7 @@ const unimplemented = (): never => {
   throw new Error('unimplemented');
 };
 
-export class QueryBuilder<R, Ms> implements IQueryBuilder<R, Ms> {
+export class QueryBuilder<R, Ms> {
   constructor(private readonly query: Query<Ms>) {}
 
   select<Sels extends Selectable<Ms>[]>(...sels: Sels): QueryBuilder<Select<ValuesOf<Sels>>, Ms> {
