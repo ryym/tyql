@@ -1,4 +1,4 @@
-import { Ordering, ModelClass, IColumn, ColumnExpr, iexprPhantomTypes, ColumnList } from './types';
+import { ModelClass, IColumn, ColumnExpr, iexprPhantomTypes, ColumnList } from './types';
 import { Ops } from './ops';
 
 type MethodNames<T> = { [P in keyof T]: T[P] extends Function ? P : never }[keyof T];
@@ -35,14 +35,6 @@ export class Column<V, M> extends Ops<V, M> implements IColumn<V, M> {
       columnName: this.columnName,
       fieldName: this.fieldName,
     };
-  }
-
-  asc(): Ordering<M> {
-    throw new Error('unimplemented');
-  }
-
-  desc(): Ordering<M> {
-    throw new Error('unimplemented');
   }
 }
 

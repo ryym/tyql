@@ -1,4 +1,4 @@
-import { Aliased, Op, IExpr, Expr, iexprPhantomTypes, BetweenExpr } from './types';
+import { Aliased, Op, IExpr, Expr, iexprPhantomTypes, BetweenExpr, Orderer, Order } from './types';
 
 const todo = (): any => null;
 
@@ -71,7 +71,18 @@ export abstract class Ops<V, M> implements IExpr<V, M> {
     return this.between(start, end).positive(false);
   }
 
-  // Other operations...
+  asc(): Orderer<M> {
+    return new ExprOrderer(this, Order.ASC);
+  }
+
+  desc(): Orderer<M> {
+    return new ExprOrderer(this, Order.DESC);
+  }
+}
+
+export class ExprOrderer<M> implements Orderer<M> {
+  _orderer_types: [M] = null as any;
+  constructor(public readonly expr: IExpr<any, M>, public readonly order: Order) {}
 }
 
 export class InfixOp<V, M> extends Ops<V, M> implements IExpr<V, M> {

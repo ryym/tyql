@@ -3,7 +3,7 @@ import {
   Select,
   ValuesOf,
   AddColumn,
-  Ordering,
+  Orderer,
   AliasedQuery,
   Connection,
   ResultRowType,
@@ -49,8 +49,9 @@ export class QueryBuilder<R, Ms> {
     return this;
   }
 
-  orderBy(..._ords: Ordering<Ms>[]): QueryBuilder<R, Ms> {
-    return unimplemented();
+  orderBy(...ords: Orderer<Ms>[]): QueryBuilder<R, Ms> {
+    this.query.orderBy = this.query.orderBy.concat(ords);
+    return this;
   }
 
   limit(_n: number): QueryBuilder<R, Ms> {

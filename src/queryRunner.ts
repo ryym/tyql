@@ -54,6 +54,14 @@ export const constructQuery = (
     builder = builder.having(having);
   }
 
+  if (q.orderBy.length > 0) {
+    q.orderBy.forEach(ord => {
+      const expr = buildExpr(ord.expr, ctx);
+      // knex.orderBy accepts Knex.Raw but its type definition does not.
+      builder = builder.orderBy(expr as any, ord.order);
+    });
+  }
+
   return builder;
 };
 

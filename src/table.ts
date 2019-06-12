@@ -132,5 +132,6 @@ export const newQuery = <M>(from: ColumnList<M>): Query<M> => {
     where: [],
     groupBy: [],
     having: [],
+    orderBy: [],
   };
 };

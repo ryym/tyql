@@ -134,6 +134,7 @@ export async function checkRunning() {
       )
       .groupBy(Users.id, Users.email)
       .having(Users.id.eq(3))
+      .orderBy(Users.id.asc(), Users.createdAt.desc(), Users.id.add(1).asc())
       .toSQL(conn);
     console.log('WHERE', ...sql);
   } finally {

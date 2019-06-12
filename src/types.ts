@@ -120,14 +120,14 @@ export interface ColumnList<M> {
 }
 
 export enum Order {
-  ASC,
-  DESC,
+  ASC = 'ASC',
+  DESC = 'DESC',
 }
 
-export interface Ordering<M> {
+export interface Orderer<M> {
+  _orderer_types: [M];
+  expr: IExpr<any, M>;
   order: Order;
-  _ordering_phantom: [M];
-  expr: Expr;
 }
 
 export interface AliasedQuery {
@@ -170,6 +170,7 @@ export interface Query<Models> {
   where: IExpr<boolean, Models>[];
   groupBy: Groupable<Models>[];
   having: IExpr<boolean, Models>[];
+  orderBy: Orderer<Models>[];
 }
 
 export interface Connection {
