@@ -54,12 +54,14 @@ export class QueryBuilder<R, Ms> {
     return this;
   }
 
-  limit(_n: number): QueryBuilder<R, Ms> {
-    return unimplemented();
+  limit(n: number): QueryBuilder<R, Ms> {
+    this.query.limit = n;
+    return this;
   }
 
-  offset(_n: number): QueryBuilder<R, Ms> {
-    return unimplemented();
+  offset(n: number): QueryBuilder<R, Ms> {
+    this.query.offset = n;
+    return this;
   }
 
   as(_alias: string): AliasedQuery {

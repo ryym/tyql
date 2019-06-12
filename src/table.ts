@@ -133,5 +133,7 @@ export const newQuery = <M>(from: ColumnList<M>): Query<M> => {
     groupBy: [],
     having: [],
     orderBy: [],
+    limit: null,
+    offset: null,
   };
 };

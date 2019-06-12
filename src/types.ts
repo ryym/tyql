@@ -171,6 +171,8 @@ export interface Query<Models> {
   groupBy: Groupable<Models>[];
   having: IExpr<boolean, Models>[];
   orderBy: Orderer<Models>[];
+  limit: number | null;
+  offset: number | null;
 }
 
 export interface Connection {

@@ -62,6 +62,13 @@ export const constructQuery = (
     });
   }
 
+  if (q.limit != null) {
+    builder = builder.limit(q.limit);
+  }
+  if (q.offset != null) {
+    builder = builder.offset(q.offset);
+  }
+
   return builder;
 };
 
