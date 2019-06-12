@@ -159,6 +159,7 @@ export interface TableRel<V, M1, M2> extends Joinable<M1, M2> {
 }
 
 export type Selectable<M> = IExpr<any, M> | Aliased<any, M> | ColumnList<M>;
+export type Groupable<M> = IExpr<any, M> | ColumnList<M>;
 
 export interface Query<Models> {
   from: string;
@@ -167,6 +168,8 @@ export interface Query<Models> {
   defaultSelect: ColumnList<Models>[];
   innerJoins: Joinable<any, any>[];
   where: IExpr<boolean, Models>[];
+  groupBy: Groupable<Models>[];
+  having: IExpr<boolean, Models>[];
 }
 
 export interface Connection {

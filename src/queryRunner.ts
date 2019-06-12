@@ -1,5 +1,5 @@
 import * as Knex from 'knex';
-import { Query, Selectable, IExpr, Op, Joinable } from './types';
+import { Query, Selectable, IExpr, Op, Joinable, Groupable } from './types';
 import { Quote } from './connection';
 import { mapRows } from './queryResultMapper';
 import { unreachable } from './unreachable';
@@ -34,7 +34,7 @@ export const constructQuery = (
   builder = builder.from(from).select(...select);
 
   if (q.where.length > 0) {
-    const where = buildWhere(q.where, ctx);
+    const where = concatPredicates(q.where, ctx);
     builder = builder.where(where);
   }
 
@@ -42,6 +42,16 @@ export const constructQuery = (
     buildJoins(q.innerJoins, ctx).forEach(([table, on]) => {
       builder = builder.innerJoin(table, on);
     });
+  }
+
+  if (q.groupBy.length > 0) {
+    const groupBy = buildGroupBy(q.groupBy, ctx);
+    builder = builder.groupBy(groupBy);
+  }
+
+  if (q.having.length > 0) {
+    const having = concatPredicates(q.having, ctx);
+    builder = builder.having(having);
   }
 
   return builder;
@@ -58,8 +68,7 @@ const buildSelect = (select: Selectable<any>[], ctx: BuildContext): Knex.Raw[] =
         });
         break;
       case 'ALIASED':
-        // TODO
-        break;
+        throw new Error('unimplemented');
       default:
         raws.push(buildExpr(sel, ctx));
         break;
@@ -69,8 +78,8 @@ const buildSelect = (select: Selectable<any>[], ctx: BuildContext): Knex.Raw[] =
   return raws;
 };
 
-const buildWhere = (where: IExpr<boolean, any>[], ctx: BuildContext): Knex.Raw => {
-  const pred = and(...where);
+const concatPredicates = (preds: IExpr<boolean, any>[], ctx: BuildContext): Knex.Raw => {
+  const pred = and(...preds);
   return buildExpr(pred, ctx);
 };
 
@@ -80,6 +89,25 @@ const buildJoins = (joins: Joinable<any, any>[], ctx: BuildContext): [string, Kn
     const table = def.tableAlias ? `${def.tableName} AS ${def.tableAlias}` : def.tableName;
     return [table, buildExpr(def.on, ctx)];
   });
+};
+
+const buildGroupBy = (exprs: Groupable<any>[], ctx: BuildContext): Knex.Raw[] => {
+  const raws: Knex.Raw[] = [];
+
+  exprs.forEach(expr => {
+    switch (expr.$type) {
+      case 'COLUMN_LIST':
+        expr.columns().forEach(col => {
+          raws.push(buildExpr(col, ctx));
+        });
+        break;
+      default:
+        raws.push(buildExpr(expr, ctx));
+        break;
+    }
+  });
+
+  return raws;
 };
 
 const buildExpr = (iexpr: IExpr<any, any>, ctx: BuildContext): Knex.Raw => {

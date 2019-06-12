@@ -10,6 +10,7 @@ import {
   Query,
   IExpr,
   Joinable,
+  Groupable,
 } from './types';
 
 const unimplemented = (): never => {
@@ -38,12 +39,14 @@ export class QueryBuilder<R, Ms> {
     return this;
   }
 
-  groupBy(..._exprs: IExpr<any, Ms>[]): QueryBuilder<R, Ms> {
-    return unimplemented();
+  groupBy(...exprs: Groupable<Ms>[]): QueryBuilder<R, Ms> {
+    this.query.groupBy = this.query.groupBy.concat(exprs);
+    return this;
   }
 
-  having(..._preds: IExpr<boolean, Ms>[]): QueryBuilder<R, Ms> {
-    return unimplemented();
+  having(...preds: IExpr<boolean, Ms>[]): QueryBuilder<R, Ms> {
+    this.query.having = this.query.having.concat(preds);
+    return this;
   }
 
   orderBy(..._ords: Ordering<Ms>[]): QueryBuilder<R, Ms> {

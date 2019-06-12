@@ -130,5 +130,7 @@ export const newQuery = <M>(from: ColumnList<M>): Query<M> => {
     defaultSelect: [from],
     innerJoins: [],
     where: [],
+    groupBy: [],
+    having: [],
   };
 };

@@ -122,7 +122,7 @@ export async function checkRunning() {
     const [posts, comments] = await Users.$rels(Users.posts, Users.comments).loadMaps(users, conn);
     console.log(posts, comments);
 
-    const cols = await Users.$query()
+    let sql = Users.$query()
       .where(
         Users.email.like('%gmail%'),
         Users.email.notLike('%hoge%'),
@@ -132,8 +132,10 @@ export async function checkRunning() {
         Users.id.in(1, 3, 10),
         Users.id.notIn(50, 10, 100)
       )
-      .load(conn);
-    console.log('WHERE', cols);
+      .groupBy(Users.id, Users.email)
+      .having(Users.id.eq(3))
+      .toSQL(conn);
+    console.log('WHERE', ...sql);
   } finally {
     conn.close();
   }
