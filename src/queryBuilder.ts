@@ -65,4 +65,8 @@ export class QueryBuilder<R, Ms> {
   async load(conn: Connection): Promise<ResultRowType<R>[]> {
     return conn.runQuery<ResultRowType<R>>(this.query);
   }
+
+  toSQL(conn: Connection): [string, any[]] {
+    return conn.toSQL(this.query);
+  }
 }

@@ -54,6 +54,7 @@ export const Comments = table(Comment, {
 
 const conn = {
   runQuery: (): any => null,
+  toSQL: (): any => null,
 };
 
 export async function checkTypes() {

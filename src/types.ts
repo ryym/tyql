@@ -171,6 +171,7 @@ export interface Query<Models> {
 
 export interface Connection {
   runQuery<R>(q: Query<any>): Promise<R[]>;
+  toSQL(q: Query<any>): [string, any[]];
 }
 
 export type Select<V> = { selects: V };

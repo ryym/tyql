@@ -1,27 +1,31 @@
 import * as Knex from 'knex';
 import { Connection, Query } from './types';
-import { runQuery } from './queryRunner';
+import { runQuery, BuildContext, constructQuery } from './queryRunner';
 
 export type Quote = (identifier: string) => string;
 
 // TODO: Hide Knex as an implementation detail.
 export class KnexConnection implements Connection {
-  readonly knex: Knex;
-  readonly quote: Quote;
+  private readonly context: BuildContext;
 
   constructor(config: Knex.Config) {
     const knex = Knex(config);
-    this.knex = knex;
-    this.quote = getQuoteFunc(config);
+    const quote = getQuoteFunc(config);
+    this.context = { knex, quote };
   }
 
   async runQuery(query: Query<any>): Promise<any> {
-    const context = { knex: this.knex, quote: this.quote };
-    return runQuery(query, context);
+    return runQuery(query, this.context);
+  }
+
+  toSQL(query: Query<any>): [string, any[]] {
+    const q = constructQuery(this.context.knex.select(), query, this.context);
+    const sql = q.toSQL();
+    return [sql.sql, sql.bindings];
   }
 
   close() {
-    this.knex.destroy();
+    this.context.knex.destroy();
   }
 }
 
