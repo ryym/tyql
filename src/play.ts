@@ -122,6 +122,11 @@ export async function checkRunning() {
     const [posts, comments] = await Users.$rels(Users.posts, Users.comments).loadMaps(users, conn);
     console.log(posts, comments);
 
+    const firstComment = await Comments.$query()
+      .where(Comments.content.like('%free%'))
+      .first(conn);
+    console.log(firstComment);
+
     let sql = Users.$query()
       .where(
         Users.email.like('%gmail%'),

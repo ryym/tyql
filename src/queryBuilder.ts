@@ -72,6 +72,11 @@ export class QueryBuilder<R, Ms> {
     return conn.runQuery<ResultRowType<R>>(this.query);
   }
 
+  async first(conn: Connection): Promise<ResultRowType<R> | undefined> {
+    const rows = await this.limit(1).load(conn);
+    return rows[0];
+  }
+
   toSQL(conn: Connection): [string, any[]] {
     return conn.toSQL(this.query);
   }
