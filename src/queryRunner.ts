@@ -194,6 +194,12 @@ const appendExpr = (st: QueryState, iexpr: IExpr<any, any>, ctx: BuildContext) =
       appendExpr(st, expr.end, ctx);
       return;
 
+    case 'PARENS':
+      st.append('(');
+      appendExpr(st, expr.expr, ctx);
+      st.append(')');
+      return;
+
     default:
       unreachable(expr);
   }

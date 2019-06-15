@@ -1,6 +1,7 @@
 import { table, rel } from './table';
 import { KnexConnection } from './connection';
 import { camelToSnake } from './column';
+import { and, or } from './ops';
 
 class User {
   static tyql = {
@@ -141,7 +142,12 @@ export async function checkRunning() {
         Users.id.in(1, 3, 10),
         Users.id.notIn(50, 10, 100),
         Users.email.isNull(),
-        Users.email.isNotNull()
+        Users.email.isNotNull(),
+        or(
+          and(Users.id.gt(5), Users.id.lt(10)),
+          Users.userName.like('hey%'),
+          Users.userName.like('wow%')
+        )
       )
       .groupBy(Users.id, Users.email)
       .having(Users.id.eq(3))

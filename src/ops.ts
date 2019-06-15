@@ -243,32 +243,35 @@ export class BetweenOp<M> extends Ops<boolean, M> implements IExpr<boolean, M> {
   }
 }
 
-// TODO: Should not allow to call numeric operations such as `a.eq(b).add(3)`.
-export class LogicalOp<M> extends Ops<boolean, M> implements IExpr<boolean, M> {
-  readonly $type = 'EXPR' as const;
-  readonly _iexpr_types = iexprPhantomTypes<boolean, M>();
+type ModelOf<E> = E extends IExpr<any, infer M> ? M : never;
+type ModelsOf<Es extends any[]> = { [P in keyof Es]: ModelOf<Es[P]> }[number];
 
-  constructor(
-    private readonly left: IExpr<boolean, any>,
-    private readonly right: IExpr<boolean, any>
-  ) {
+export class InParens<V, M> extends Ops<V, M> implements IExpr<V, M> {
+  _iexpr_types = iexprPhantomTypes<V, M>();
+
+  constructor(private readonly expr: IExpr<V, M>) {
     super();
   }
 
   toExpr(): Expr {
-    return {
-      $exprType: 'INFIX',
-      left: this.left,
-      right: this.right,
-      op: Op.AND,
-    };
+    return { $exprType: 'PARENS', expr: this.expr };
   }
 }
 
-type ModelOf<E> = E extends IExpr<any, infer M> ? M : never;
-type ModelsOf<Es extends any[]> = { [P in keyof Es]: ModelOf<Es[P]> }[number];
+export const parens = <V, M>(expr: IExpr<V, M>): InParens<V, M> => {
+  return new InParens(expr);
+};
 
-export const and = <Ps extends IExpr<boolean, any>[]>(...preds: Ps): LogicalOp<ModelsOf<Ps>> => {
-  let pred = preds.reduce((left, right) => new LogicalOp(left, right));
-  return pred as LogicalOp<ModelsOf<Ps>>;
+export const and = <Ps extends IExpr<boolean, any>[]>(
+  ...preds: Ps
+): InfixOp<boolean, ModelsOf<Ps>> => {
+  let pred = preds.reduce((left, right) => new InfixOp(left, Op.AND, right));
+  return pred as InfixOp<boolean, ModelsOf<Ps>>;
+};
+
+export const or = <Ps extends IExpr<boolean, any>[]>(
+  ...preds: Ps
+): InParens<boolean, ModelsOf<Ps>> => {
+  let pred = preds.reduce((left, right) => new InfixOp(left, Op.OR, right));
+  return new InParens(pred);
 };

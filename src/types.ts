@@ -103,10 +103,23 @@ export interface QueryExpr {
   readonly $exprType: 'QUERY';
 }
 
+export interface ParensExpr {
+  readonly $exprType: 'PARENS';
+  expr: IExpr<any, any>;
+}
+
 // These types are internal representation and users don't use this directly
 // so they do not have types it represents.
 // TODO: Add QueryExpr.
-export type Expr = ColumnExpr | LitExpr | PrefixExpr | InfixExpr | SufixExpr | InExpr | BetweenExpr;
+export type Expr =
+  | ColumnExpr
+  | LitExpr
+  | PrefixExpr
+  | InfixExpr
+  | SufixExpr
+  | InExpr
+  | BetweenExpr
+  | ParensExpr;
 
 export interface Aliased<V, M> {
   readonly $type: 'ALIASED';
