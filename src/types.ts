@@ -27,7 +27,15 @@ export const iexprPhantomTypes = <V, M>(): [V, M] => null as any;
 
 export enum Op {
   EQ = '=',
+  NOT_EQ = '<>',
+  GT = '>',
+  GTE = '>=',
+  LT = '<',
+  LTE = '<=',
   ADD = '+',
+  SUBTRACT = '-',
+  MULTIPLY = '*',
+  DIVIDE = '/',
   IN = 'IN',
   BETWEEN = 'BETWEEN',
   AND = 'AND',

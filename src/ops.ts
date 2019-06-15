@@ -27,11 +27,43 @@ export abstract class Ops<V, M> implements IExpr<V, M> {
     return this.infix<boolean, M2>(Op.EQ, val);
   }
 
+  notEq<M2 = M>(val: V | IExpr<V, M2>): InfixOp<boolean, M | M2> {
+    return this.infix<boolean, M2>(Op.NOT_EQ, val);
+  }
+
+  gt<M2 = M>(val: V | IExpr<V, M2>): InfixOp<boolean, M | M2> {
+    return this.infix<boolean, M2>(Op.GT, val);
+  }
+
+  gte<M2 = M>(val: V | IExpr<V, M2>): InfixOp<boolean, M | M2> {
+    return this.infix<boolean, M2>(Op.GTE, val);
+  }
+
+  lt<M2 = M>(val: V | IExpr<V, M2>): InfixOp<boolean, M | M2> {
+    return this.infix<boolean, M2>(Op.LT, val);
+  }
+
+  lte<M2 = M>(val: V | IExpr<V, M2>): InfixOp<boolean, M | M2> {
+    return this.infix<boolean, M2>(Op.LTE, val);
+  }
+
   // 本来は特定の型でしか呼び出せないはずだけど、
   // そこまでやると RDB ごとにも違いそうだし無視する。
   // SQL のシンタックス的に問題なければひとまずOK。
   add<M2 = M>(val: V | IExpr<V, M2>): InfixOp<V, M | M2> {
     return this.infix<V, M2>(Op.ADD, val);
+  }
+
+  sbt<M2 = M>(val: V | IExpr<V, M2>): InfixOp<V, M | M2> {
+    return this.infix<V, M2>(Op.SUBTRACT, val);
+  }
+
+  mlt<M2 = M>(val: V | IExpr<V, M2>): InfixOp<V, M | M2> {
+    return this.infix<V, M2>(Op.MULTIPLY, val);
+  }
+
+  dvd<M2 = M>(val: V | IExpr<V, M2>): InfixOp<V, M | M2> {
+    return this.infix<V, M2>(Op.DIVIDE, val);
   }
 
   like<M2 = M>(val: V | IExpr<V, M2>): InfixOp<boolean, M | M2> {

@@ -133,6 +133,10 @@ export async function checkRunning() {
         Users.email.notLike('%hoge%'),
         Users.email.like(Users.userName), // lit('%').concat(Users.userName) ?
         Users.id.between(10, 30),
+        Users.id
+          .add(3)
+          .mlt(5)
+          .eq(Users.id.sbt(4).dvd(5)),
         Users.userName.notBetween('a', 'z'),
         Users.id.in(1, 3, 10),
         Users.id.notIn(50, 10, 100)
