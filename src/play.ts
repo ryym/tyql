@@ -127,7 +127,7 @@ export async function checkRunning() {
       .first(conn);
     console.log(firstComment);
 
-    let sql = Users.$query()
+    let complexQueryResult = Users.$query()
       .where(
         Users.email.like('%gmail%'),
         Users.email.notLike('%hoge%'),
@@ -139,15 +139,16 @@ export async function checkRunning() {
           .eq(Users.id.sbt(4).dvd(5)),
         Users.userName.notBetween('a', 'z'),
         Users.id.in(1, 3, 10),
-        Users.id.notIn(50, 10, 100)
+        Users.id.notIn(50, 10, 100),
+        Users.email.isNull(),
+        Users.email.isNotNull()
       )
       .groupBy(Users.id, Users.email)
       .having(Users.id.eq(3))
       .orderBy(Users.id.asc(), Users.createdAt.desc(), Users.id.add(1).asc())
       .limit(5)
-      .offset(3)
-      .toSQL(conn);
-    console.log('WHERE', ...sql);
+      .offset(3);
+    console.log(complexQueryResult.toSQL(conn));
   } finally {
     conn.close();
   }

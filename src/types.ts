@@ -50,6 +50,7 @@ export enum OpPrefix {
 
 export enum OpSufix {
   IS_NULL = 'IS NULL',
+  IS_NOT_NULL = 'IS NOT NULL',
 }
 
 export interface ColumnExpr {
@@ -66,7 +67,7 @@ export interface LitExpr {
 
 export interface PrefixExpr {
   readonly $exprType: 'PREFIX';
-  op: Op;
+  op: OpPrefix;
   expr: IExpr<any, any>;
 }
 
@@ -80,7 +81,7 @@ export interface InfixExpr {
 export interface SufixExpr {
   readonly $exprType: 'SUFIX';
   expr: IExpr<any, any>;
-  op: Op;
+  op: OpSufix;
 }
 
 export interface InExpr {

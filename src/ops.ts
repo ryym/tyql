@@ -1,4 +1,14 @@
-import { Aliased, Op, IExpr, Expr, iexprPhantomTypes, BetweenExpr, Orderer, Order } from './types';
+import {
+  Aliased,
+  Op,
+  IExpr,
+  Expr,
+  iexprPhantomTypes,
+  BetweenExpr,
+  Orderer,
+  Order,
+  OpSufix,
+} from './types';
 
 const todo = (): any => null;
 
@@ -103,6 +113,14 @@ export abstract class Ops<V, M> implements IExpr<V, M> {
     return this.between(start, end).positive(false);
   }
 
+  isNull(): SufixOp<boolean, M> {
+    return new SufixOp(this, OpSufix.IS_NULL);
+  }
+
+  isNotNull(): SufixOp<boolean, M> {
+    return new SufixOp(this, OpSufix.IS_NOT_NULL);
+  }
+
   asc(): Orderer<M> {
     return new ExprOrderer(this, Order.ASC);
   }
@@ -135,6 +153,23 @@ export class InfixOp<V, M> extends Ops<V, M> implements IExpr<V, M> {
       left: this.left,
       op: this.op,
       right: this.right,
+    };
+  }
+}
+
+export class SufixOp<V, M> extends Ops<V, M> implements IExpr<V, M> {
+  readonly $type = 'EXPR' as const;
+  readonly _iexpr_types = iexprPhantomTypes<V, M>();
+
+  constructor(private readonly expr: IExpr<any, M>, private readonly op: OpSufix) {
+    super();
+  }
+
+  toExpr(): Expr {
+    return {
+      $exprType: 'SUFIX',
+      expr: this.expr,
+      op: this.op,
     };
   }
 }
