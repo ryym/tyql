@@ -75,7 +75,7 @@ export async function checkTypes() {
   const tableAndCols = await Users()
     .innerJoin(Users.posts)
     .innerJoin(Users.comments)
-    .select(Users(), Users.posts.title, Users.posts.$all(), Users.id, Users.comments.$all())
+    .select(Users(), Users.posts.title, Users.posts(), Users.id, Users.comments())
     .load(conn);
   console.log(tableAndCols);
 

@@ -1,6 +1,37 @@
 import { ModelClass, JoinDefinition, TableRel } from './types';
 import { FieldNames, FieldNamesOfType, Column, Fields, ModelColumnList } from './column';
 import { TableActions } from './tableActions';
+import { RelationActions } from './relationActions';
+
+// We override the type of function's build-in properties.
+// This allows you to define same name properties such as 'name' and 'arguments' in your model.
+// Without this, the type of these properties is inferred as an intersection type with the original
+// property of a function.
+export interface Defunction {
+  arguments: unknown;
+  bind: unknown;
+  call: unknown;
+  caller: unknown;
+  length: unknown;
+  name: unknown;
+  prototype: unknown;
+  toString: unknown;
+}
+
+const defunc = <F extends Function>(f: F, name?: string): F => {
+  BUILTIN_FUNCTION_PROPS.forEach(prop => {
+    Object.defineProperty(f, prop, {
+      value: undefined,
+      configurable: true,
+      writable: true,
+      enumerable: true,
+    });
+  });
+  if (name) {
+    Object.defineProperty(f, 'name', { value: name });
+  }
+  return f;
+};
 
 export const rel = <M1, M2, C2 extends FieldNames<M2>>(
   rightModel: ModelClass<M2>,
@@ -16,27 +47,20 @@ export const rel = <M1, M2, C2 extends FieldNames<M2>>(
 
 export type ColumnSet<M> = { readonly [K in keyof Fields<M>]: Column<M[K], M> };
 
-export type RelationBuilder<V, M1, M2> = ColumnSet<M2> & TableRel<V, M1, M2>;
+export interface RelationBuilderBase<M> extends Defunction {
+  (): RelationActions<M>;
+}
+
+export type RelationBuilder<V, M1, M2> = RelationBuilderBase<M2> &
+  ColumnSet<M2> &
+  TableRel<V, M1, M2>;
 
 type AnyRelationBuilders<M> = {
   [key: string]: RelationBuilder<any, M, any>;
 };
 
-export interface TableBase<M> {
+export interface TableBase<M> extends Defunction {
   (): TableActions<M>;
-
-  // We override the type of function's build-in properties.
-  // This allows you to define same name properties such as 'name' and 'arguments' in your model.
-  // Without this, the type of these properties is inferred as an intersection type with the original
-  // property of a function.
-  arguments: unknown;
-  bind: unknown;
-  call: unknown;
-  caller: unknown;
-  length: unknown;
-  name: unknown;
-  prototype: unknown;
-  toString: unknown;
 }
 
 export type Table<M, Rels extends AnyRelationBuilders<M>> = TableBase<M> & Rels & ColumnSet<M>;
@@ -83,18 +107,7 @@ export function table<M, Rels extends RelsTemplate<M>>(
   const columnSet = newColumnSet(columnList);
   const relations = makeRelationBuilders(tableName, columnSet, config.rels || ({} as Rels));
 
-  const base = () => new TableActions(columnList);
-  Object.defineProperty(base, 'name', { value: `${tableName}_builder` });
-
-  BUILTIN_FUNCTION_PROPS.forEach(prop => {
-    Object.defineProperty(base, prop, {
-      value: undefined,
-      configurable: true,
-      writable: true,
-      enumerable: true,
-    });
-  });
-
+  const base = defunc(() => new TableActions(columnList), `${tableName}_builder`);
   return Object.assign(base, columnSet, relations);
 }
 
@@ -129,7 +142,9 @@ const makeRelationBuilders = <M, Rels extends RelsTemplate<M>>(
         columnName: originalRightCol.columnName,
       });
 
-      const relBuilder: RelationBuilder<any, M, any> = Object.assign({}, rightColumnSet, {
+      const base = defunc(() => new RelationActions(rightColumnList), `${tableAlias}_builder`);
+
+      const relBuilder: RelationBuilder<any, M, any> = Object.assign(base, rightColumnSet, {
         _joinable_types: null as any,
         $leftCol: leftCol,
         $rightCol: rightCol,
