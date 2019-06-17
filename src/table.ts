@@ -1,7 +1,6 @@
-import { ModelClass, ColumnList, Query, JoinDefinition, TableRel } from './types';
+import { ModelClass, JoinDefinition, TableRel } from './types';
 import { FieldNames, FieldNamesOfType, Column, Fields, ModelColumnList } from './column';
-import { QueryBuilder } from './queryBuilder';
-import { RelationLoader } from './relationLoader';
+import { TableActions } from './tableActions';
 
 export const rel = <M1, M2, C2 extends FieldNames<M2>>(
   rightModel: ModelClass<M2>,
@@ -24,9 +23,20 @@ type AnyRelationBuilders<M> = {
 };
 
 export interface TableBase<M> {
-  $all(): ColumnList<M>;
-  $query(): QueryBuilder<M, M>;
-  $rels<RS extends TableRel<any, M, any>[]>(...rels: RS): RelationLoader<M, RS>;
+  (): TableActions<M>;
+
+  // We override the type of function's build-in properties.
+  // This allows you to define same name properties such as 'name' and 'arguments' in your model.
+  // Without this, the type of these properties is inferred as an intersection type with the original
+  // property of a function.
+  arguments: unknown;
+  bind: unknown;
+  call: unknown;
+  caller: unknown;
+  length: unknown;
+  name: unknown;
+  prototype: unknown;
+  toString: unknown;
 }
 
 export type Table<M, Rels extends AnyRelationBuilders<M>> = TableBase<M> & Rels & ColumnSet<M>;
@@ -51,6 +61,17 @@ export type TableConfig<M, Rels extends RelsTemplate<M>> = {
   rels?: Rels;
 };
 
+const BUILTIN_FUNCTION_PROPS = [
+  'arguments',
+  'bind',
+  'call',
+  'caller',
+  'length',
+  'name',
+  'prototype',
+  'toString',
+];
+
 // The syntax highlight of VSCode does not work correctly
 // if we define this by arrow function :(
 export function table<M, Rels extends RelsTemplate<M>>(
@@ -62,15 +83,19 @@ export function table<M, Rels extends RelsTemplate<M>>(
   const columnSet = newColumnSet(columnList);
   const relations = makeRelationBuilders(tableName, columnSet, config.rels || ({} as Rels));
 
-  const base: TableBase<M> = {
-    $all: () => columnList,
-    $query: () => new QueryBuilder<M, M>(newQuery(columnList)),
-    $rels: <RS extends TableRel<any, M, any>[]>(...rels: RS): RelationLoader<M, RS> => {
-      return new RelationLoader(rels);
-    },
-  };
+  const base = () => new TableActions(columnList);
+  Object.defineProperty(base, 'name', { value: `${tableName}_builder` });
 
-  return Object.assign({}, columnSet, relations, base);
+  BUILTIN_FUNCTION_PROPS.forEach(prop => {
+    Object.defineProperty(base, prop, {
+      value: undefined,
+      configurable: true,
+      writable: true,
+      enumerable: true,
+    });
+  });
+
+  return Object.assign(base, columnSet, relations);
 }
 
 const newColumnSet = <M>(columnList: ModelColumnList<M>): ColumnSet<M> => {
@@ -120,20 +145,4 @@ const makeRelationBuilders = <M, Rels extends RelsTemplate<M>>(
     },
     {} as RelationBuilders<M, Rels>
   );
-};
-
-export const newQuery = <M>(from: ColumnList<M>): Query<M> => {
-  return {
-    from: from.tableName(),
-    fromAlias: from.tableAlias(),
-    select: null,
-    defaultSelect: [from],
-    innerJoins: [],
-    where: [],
-    groupBy: [],
-    having: [],
-    orderBy: [],
-    limit: null,
-    offset: null,
-  };
 };

@@ -59,35 +59,35 @@ const conn = {
 };
 
 export async function checkTypes() {
-  const users = await Users.$query().load(conn);
+  const users = await Users().load(conn);
   console.log(users);
 
-  const idAndNames = await Users.$query()
+  const idAndNames = await Users()
     .select(Users.id, Users.userName)
     .load(conn);
   console.log(idAndNames);
 
-  const userAndPosts = await Users.$query()
+  const userAndPosts = await Users()
     .innerJoin(Users.posts)
     .load(conn);
   console.log(userAndPosts);
 
-  const tableAndCols = await Users.$query()
+  const tableAndCols = await Users()
     .innerJoin(Users.posts)
     .innerJoin(Users.comments)
-    .select(Users.$all(), Users.posts.title, Users.posts.$all(), Users.id, Users.comments.$all())
+    .select(Users(), Users.posts.title, Users.posts.$all(), Users.id, Users.comments.$all())
     .load(conn);
   console.log(tableAndCols);
 
-  Users.$query().where(Users.id.eq(1), Users.id.eq(Users.id).eq(true));
-  Users.$query()
+  Users().where(Users.id.eq(1), Users.id.eq(Users.id).eq(true));
+  Users()
     .innerJoin(Users.posts)
     // .where(Users.id.add(3)) // expected error
     .where(Users.id.eq(Users.id.add(Users.posts.id)), Users.id.eq(3), Users.id.in(1, 2, 3))
     .groupBy(Users.posts.id)
     .orderBy(Users.id.asc(), Users.posts.title.desc());
 
-  const ret = await Users.$query()
+  const ret = await Users()
     .select(Users.id.add(3), Users.id.eq(3))
     .load(conn);
   console.log(ret);
@@ -106,29 +106,31 @@ export async function checkRunning() {
     },
   });
   try {
-    const users = await Users.$query().load(conn);
+    const users = await Users().load(conn);
     console.log(users);
 
-    const ids = await Users.$query()
+    const ids = await Users()
       .select(Users.id)
       .where(Users.id.in(1, 2, 3))
       .load(conn);
     console.log(ids);
 
-    const userAndPosts = await Users.$query()
+    const userAndPosts = await Users()
       .innerJoin(Users.posts)
       .load(conn);
     console.log(userAndPosts);
 
-    const [posts, comments] = await Users.$rels(Users.posts, Users.comments).loadMaps(users, conn);
+    const [posts, comments] = await Users()
+      .rels(Users.posts, Users.comments)
+      .loadMaps(users, conn);
     console.log(posts, comments);
 
-    const firstComment = await Comments.$query()
+    const firstComment = await Comments()
       .where(Comments.content.like('%free%'))
       .first(conn);
     console.log(firstComment);
 
-    let complexQueryResult = Users.$query()
+    let complexQueryResult = Users()
       .where(
         Users.email.like('%gmail%'),
         Users.email.notLike('%hoge%'),

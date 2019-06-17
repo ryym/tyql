@@ -1,6 +1,5 @@
 import { TableRel, Connection } from './types';
-import { QueryBuilder } from './queryBuilder';
-import { newQuery } from './table';
+import { QueryBuilder, newQuery } from './queryBuilder';
 import { InOp, Literal } from './ops';
 
 export type RelsMap<M1, RS> = {

@@ -11,6 +11,7 @@ import {
   IExpr,
   Joinable,
   Groupable,
+  ColumnList,
 } from './types';
 
 const unimplemented = (): never => {
@@ -81,3 +82,19 @@ export class QueryBuilder<R, Ms> {
     return conn.toSQL(this.query);
   }
 }
+
+export const newQuery = <M>(from: ColumnList<M>): Query<M> => {
+  return {
+    from: from.tableName(),
+    fromAlias: from.tableAlias(),
+    select: null,
+    defaultSelect: [from],
+    innerJoins: [],
+    where: [],
+    groupBy: [],
+    having: [],
+    orderBy: [],
+    limit: null,
+    offset: null,
+  };
+};
