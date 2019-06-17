@@ -1,7 +1,8 @@
-import { ModelClass, JoinDefinition, TableRel } from './types';
+import { ModelClass } from './types';
 import { FieldNames, FieldNamesOfType, Column, Fields, ModelColumnList } from './column';
 import { TableActions } from './tableActions';
 import { RelationActions } from './relationActions';
+import { Joiner } from './queryBuilder';
 
 // We override the type of function's build-in properties.
 // This allows you to define same name properties such as 'name' and 'arguments' in your model.
@@ -47,13 +48,11 @@ export const rel = <M1, M2, C2 extends FieldNames<M2>>(
 
 export type ColumnSet<M> = { readonly [K in keyof Fields<M>]: Column<M[K], M> };
 
-export interface RelationBuilderBase<M> extends Defunction {
-  (): RelationActions<M>;
+export interface RelationBuilderBase<V, M1, M2> extends Defunction, Joiner<M1, M2> {
+  (): RelationActions<V, M1, M2>;
 }
 
-export type RelationBuilder<V, M1, M2> = RelationBuilderBase<M2> &
-  ColumnSet<M2> &
-  TableRel<V, M1, M2>;
+export type RelationBuilder<V, M1, M2> = RelationBuilderBase<V, M1, M2> & ColumnSet<M2>;
 
 type AnyRelationBuilders<M> = {
   [key: string]: RelationBuilder<any, M, any>;
@@ -142,19 +141,12 @@ const makeRelationBuilders = <M, Rels extends RelsTemplate<M>>(
         columnName: originalRightCol.columnName,
       });
 
-      const base = defunc(() => new RelationActions(rightColumnList), `${tableAlias}_builder`);
+      const base = defunc(
+        () => new RelationActions<any, M, any>(leftCol, rightCol, rightColumnList),
+        `${tableAlias}_builder`
+      );
 
-      const relBuilder: RelationBuilder<any, M, any> = Object.assign(base, rightColumnSet, {
-        _joinable_types: null as any,
-        $leftCol: leftCol,
-        $rightCol: rightCol,
-        $all: () => rightColumnList,
-        $toJoin: (): JoinDefinition => ({
-          tableName: rightModel.tyql.table,
-          tableAlias,
-          on: rightCol.eq(leftCol),
-        }),
-      });
+      const relBuilder: RelationBuilder<any, M, any> = Object.assign(base, rightColumnSet);
       (rls as any)[name] = relBuilder;
       return rls;
     },

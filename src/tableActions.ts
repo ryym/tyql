@@ -3,7 +3,6 @@ import {
   Selectable,
   Select,
   ValuesOf,
-  Joinable,
   AddColumn,
   IExpr,
   Orderer,
@@ -12,7 +11,7 @@ import {
   TableRel,
 } from './types';
 import { Column, ModelColumnList } from './column';
-import { QueryBuilder, newQuery } from './queryBuilder';
+import { QueryBuilder, newQuery, Joiner } from './queryBuilder';
 import { RelationLoader } from './relationLoader';
 
 export class TableActions<M> implements ColumnList<M> {
@@ -44,7 +43,7 @@ export class TableActions<M> implements ColumnList<M> {
     return this.query().select(...sels);
   }
 
-  innerJoin<M1 extends M, M2>(join: Joinable<M1, M2>): QueryBuilder<AddColumn<M, M2>, M | M2> {
+  innerJoin<M1 extends M, M2>(join: Joiner<M1, M2>): QueryBuilder<AddColumn<M, M2>, M | M2> {
     return this.query().innerJoin(join);
   }
 

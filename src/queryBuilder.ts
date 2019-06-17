@@ -18,6 +18,10 @@ const unimplemented = (): never => {
   throw new Error('unimplemented');
 };
 
+export interface Joiner<M1, M2> {
+  (): Joinable<M1, M2>;
+}
+
 export class QueryBuilder<R, Ms> {
   constructor(private readonly query: Query<Ms>) {}
 
@@ -28,9 +32,10 @@ export class QueryBuilder<R, Ms> {
     });
   }
 
-  innerJoin<M1 extends Ms, M2>(join: Joinable<M1, M2>): QueryBuilder<AddColumn<R, M2>, Ms | M2> {
+  innerJoin<M1 extends Ms, M2>(joiner: Joiner<M1, M2>): QueryBuilder<AddColumn<R, M2>, Ms | M2> {
+    const join = joiner();
     const query: Query<Ms | M2> = { ...this.query };
-    query.defaultSelect.push(join.$all());
+    query.defaultSelect.push(join.rightColumns());
     query.innerJoins.push(join);
     return new QueryBuilder(query);
   }
