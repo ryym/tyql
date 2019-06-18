@@ -175,6 +175,10 @@ export interface JoinDefinition {
   on: IExpr<any, any>;
 }
 
+export interface Joiner<M1, M2> {
+  (): Joinable<M1, M2>;
+}
+
 export interface TableRel<V, M1, M2> {
   (): TableRelDefinition<V, M1, M2>;
 }

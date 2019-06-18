@@ -9,9 +9,10 @@ import {
   Connection,
   ResultRowType,
   TableRel,
+  Joiner,
 } from './types';
 import { Column, ModelColumnList } from './column';
-import { QueryBuilder, newQuery, Joiner } from './queryBuilder';
+import { QueryBuilder, newQuery } from './queryBuilder';
 import { RelationLoader } from './relationLoader';
 
 export class TableActions<M> implements ColumnList<M> {

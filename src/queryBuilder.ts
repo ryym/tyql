@@ -9,18 +9,14 @@ import {
   ResultRowType,
   Query,
   IExpr,
-  Joinable,
   Groupable,
   ColumnList,
+  Joiner,
 } from './types';
 
 const unimplemented = (): never => {
   throw new Error('unimplemented');
 };
-
-export interface Joiner<M1, M2> {
-  (): Joinable<M1, M2>;
-}
 
 export class QueryBuilder<R, Ms> {
   constructor(private readonly query: Query<Ms>) {}

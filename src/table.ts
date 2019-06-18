@@ -1,8 +1,7 @@
-import { ModelClass } from './types';
+import { ModelClass, Joiner } from './types';
 import { FieldNames, FieldNamesOfType, Column, Fields, ModelColumnList } from './column';
 import { TableActions } from './tableActions';
 import { RelationActions } from './relationActions';
-import { Joiner } from './queryBuilder';
 
 // We override the type of function's build-in properties.
 // This allows you to define same name properties such as 'name' and 'arguments' in your model.
