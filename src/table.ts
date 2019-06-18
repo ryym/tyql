@@ -1,4 +1,4 @@
-import { ModelClass, Joiner } from './types';
+import { ModelClass, Joiner, TableRel } from './types';
 import { FieldNames, FieldNamesOfType, Column, Fields, ModelColumnList } from './column';
 import { TableActions } from './tableActions';
 import { RelationActions } from './relationActions';
@@ -47,7 +47,10 @@ export const rel = <M1, M2, C2 extends FieldNames<M2>>(
 
 export type ColumnSet<M> = { readonly [K in keyof Fields<M>]: Column<M[K], M> };
 
-export interface RelationBuilderBase<V, M1, M2> extends Defunction, Joiner<M1, M2> {
+export interface RelationBuilderBase<V, M1, M2>
+  extends Defunction,
+    Joiner<M1, M2>,
+    TableRel<V, M1, M2> {
   (): RelationActions<V, M1, M2>;
 }
 
