@@ -98,7 +98,10 @@ const concatPredicates = (preds: IExpr<boolean, any>[], ctx: BuildContext): Knex
   return buildExpr(pred, ctx);
 };
 
-const buildJoins = (joins: Joinable<any, any, any>[], ctx: BuildContext): [string, Knex.Raw][] => {
+const buildJoins = (
+  joins: Joinable<any, any, any, any>[],
+  ctx: BuildContext
+): [string, Knex.Raw][] => {
   return joins.map(j => {
     const cols = j.rightColumns();
     const table = cols.tableAlias()

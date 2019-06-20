@@ -163,24 +163,27 @@ export interface SchemaTable<M> {
 
 export type TableLike = AliasedQuery | SchemaTable<any>;
 
-export interface Joinable<R, M1, M2> {
-  _joinable_types: [R, M1];
+export interface Joinable<R, M1, M2, Ms> {
+  _joinable_types: [R, M1, Ms];
   rightColumns(): ColumnList<M2>;
   on(): IExpr<any, any>;
-  joins(): Joinable<any, M1, any>[];
-  innerJoin<R2, M3>(joins: Joiner<R2, M2, M3>): Joiner<Append<R, R2>, M1, M2 | M3>;
+  joins(): Joinable<any, M1, any, any>[];
+  innerJoin<R2, Ms2>(joins: Joiner<R2, M2, any, Ms2>): JoinChain<Append<R, R2>, M1, M2, Ms | Ms2>;
 }
 
-export interface Joiner<R, M1, M2> {
-  _joiner_types: [R];
-  (): Joinable<R, M1, M2>;
+export interface JoinChain<R, M1, M2, Ms> extends Joiner<R, M1, M2, Ms> {
+  innerJoin<R2, Ms2>(joins: Joiner<R2, M2, any, Ms2>): JoinChain<Append<R, R2>, M1, M2, Ms | Ms2>;
+}
+
+export interface Joiner<R, M1, M2, Ms> {
+  (): Joinable<R, M1, M2, Ms>;
 }
 
 export interface TableRel<V, M1, M2> {
   (): TableRelDefinition<V, M1, M2>;
 }
 
-export interface TableRelDefinition<V, M1, M2> extends Joinable<M2, M1, M2> {
+export interface TableRelDefinition<V, M1, M2> extends Joinable<M2, M1, M2, M2> {
   leftCol: IColumn<V, M1>;
   rightCol: IColumn<V, M2>;
 }
@@ -193,7 +196,7 @@ export interface Query<Models> {
   fromAlias?: string;
   select: Selectable<any>[] | null;
   defaultSelect: ColumnList<Models>[];
-  innerJoins: Joinable<any, any, any>[];
+  innerJoins: Joinable<any, any, any, any>[];
   where: IExpr<boolean, Models>[];
   groupBy: Groupable<Models>[];
   having: IExpr<boolean, Models>[];

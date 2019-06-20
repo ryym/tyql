@@ -1,9 +1,9 @@
-import { ColumnList, TableRelDefinition, Joiner } from './types';
+import { ColumnList, TableRelDefinition, Joiner, Append, JoinChain } from './types';
 import { ModelColumnList, Column } from './column';
 
 export class RelationActions<V, M1, M2> implements ColumnList<M2>, TableRelDefinition<V, M1, M2> {
   $type = 'COLUMN_LIST' as const;
-  _joinable_types: [M2, M1] = null as any;
+  _joinable_types: [M2, M1, M2] = null as any;
 
   constructor(
     readonly leftCol: Column<V, M1>,
@@ -23,7 +23,9 @@ export class RelationActions<V, M1, M2> implements ColumnList<M2>, TableRelDefin
     return []; // XXX
   }
 
-  innerJoin<M3>(_joins: Joiner<any, M2, M3>): Joiner<any, M1, M2 | M3> {
+  innerJoin<R2, Ms2>(
+    _joins: Joiner<R2, M2, any, Ms2>
+  ): JoinChain<Append<M2, R2>, M1, M2, M2 | Ms2> {
     return null as any; // XXX
   }
 

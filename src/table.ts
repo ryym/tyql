@@ -49,7 +49,7 @@ export type ColumnSet<M> = { readonly [K in keyof Fields<M>]: Column<M[K], M> };
 
 export interface RelationBuilderBase<V, M1, M2>
   extends Defunction,
-    Joiner<M2, M1, M2>,
+    Joiner<M2, M1, M2, M2>,
     TableRel<V, M1, M2> {
   (): RelationActions<V, M1, M2>;
 }

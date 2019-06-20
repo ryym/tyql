@@ -30,9 +30,11 @@ export class QueryBuilder<From, R, Ms> {
     });
   }
 
-  innerJoin<R2, M2>(joiner: Joiner<R2, From, M2>): QueryBuilder<From, AddColumn<R, R2>, Ms | M2> {
+  innerJoin<R2, Ms2>(
+    joiner: Joiner<R2, From, any, Ms2>
+  ): QueryBuilder<From, AddColumn<R, R2>, Ms | Ms2> {
     const join = joiner();
-    const query: Query<Ms | M2> = { ...this.query };
+    const query: Query<Ms | Ms2> = { ...this.query };
     query.defaultSelect.push(join.rightColumns());
     query.innerJoins.push(join);
     return new QueryBuilder(query);

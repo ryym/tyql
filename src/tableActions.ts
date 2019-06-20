@@ -44,7 +44,7 @@ export class TableActions<M> implements ColumnList<M> {
     return this.query().select(...sels);
   }
 
-  innerJoin<R2, M2>(join: Joiner<R2, M, M2>): QueryBuilder<M, AddColumn<M, R2>, M | M2> {
+  innerJoin<R2, Ms2>(join: Joiner<R2, M, any, Ms2>): QueryBuilder<M, AddColumn<M, R2>, M | Ms2> {
     return this.query().innerJoin(join);
   }
 

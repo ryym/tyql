@@ -27,10 +27,15 @@ class Post {
 class Comment {
   static tyql = {
     table: 'comments',
-    template: () => new Comment(0, 0, ''),
+    template: () => new Comment(0, 0, 0, ''),
     columnNameRule: camelToSnake,
   };
-  constructor(public id: number, public commenterId: number, public content: string) {}
+  constructor(
+    public id: number,
+    public commenterId: number,
+    public postId: number,
+    public content: string
+  ) {}
 }
 
 export const Users = table(User, {
@@ -43,12 +48,14 @@ export const Users = table(User, {
 export const Posts = table(Post, {
   rels: {
     author: rel(User, 'id', 'authorId'),
+    comments: rel(Comment, 'postId', 'id'),
   },
 });
 
 export const Comments = table(Comment, {
   rels: {
     commenter: rel(User, 'id', 'commenterId'),
+    post: rel(Post, 'id', 'postId'),
   },
 });
 
@@ -70,6 +77,16 @@ export async function checkTypes() {
     .innerJoin(Users.posts)
     .load(conn);
   console.log(userAndPosts);
+
+  const userAndCommentAndPostWithComments = await Users()
+    .innerJoin(Users.comments)
+    .innerJoin(
+      Users.posts()
+        .innerJoin(Posts.comments().innerJoin(Comments.commenter))
+        .innerJoin(Posts.author)
+    )
+    .load(conn);
+  console.log(userAndCommentAndPostWithComments);
 
   const tableAndCols = await Users()
     .innerJoin(Users.posts)
