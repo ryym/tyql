@@ -163,21 +163,24 @@ export interface SchemaTable<M> {
 
 export type TableLike = AliasedQuery | SchemaTable<any>;
 
-export interface Joinable<M1, M2> {
-  _joinable_types: [M1];
+export interface Joinable<R, M1, M2> {
+  _joinable_types: [R, M1];
   rightColumns(): ColumnList<M2>;
   on(): IExpr<any, any>;
+  joins(): Joinable<any, M1, any>[];
+  innerJoin<R2, M3>(joins: Joiner<R2, M2, M3>): Joiner<Append<R, R2>, M1, M2 | M3>;
 }
 
-export interface Joiner<M1, M2> {
-  (): Joinable<M1, M2>;
+export interface Joiner<R, M1, M2> {
+  _joiner_types: [R];
+  (): Joinable<R, M1, M2>;
 }
 
 export interface TableRel<V, M1, M2> {
   (): TableRelDefinition<V, M1, M2>;
 }
 
-export interface TableRelDefinition<V, M1, M2> extends Joinable<M1, M2> {
+export interface TableRelDefinition<V, M1, M2> extends Joinable<M2, M1, M2> {
   leftCol: IColumn<V, M1>;
   rightCol: IColumn<V, M2>;
 }
@@ -190,7 +193,7 @@ export interface Query<Models> {
   fromAlias?: string;
   select: Selectable<any>[] | null;
   defaultSelect: ColumnList<Models>[];
-  innerJoins: Joinable<any, any>[];
+  innerJoins: Joinable<any, any, any>[];
   where: IExpr<boolean, Models>[];
   groupBy: Groupable<Models>[];
   having: IExpr<boolean, Models>[];
@@ -213,19 +216,23 @@ type ValueOf<S> = S extends ColumnList<infer M> ? M : S extends IExpr<infer V, a
 // TODO: Should return never if R tuple is too large.
 // This definition returns [tuple, M] in that case,
 // but the actual return value is different.
-export type AddColumn<R, M> = R extends Select<any>
-  ? R
-  : R extends [infer R1, infer R2]
-  ? [R1, R2, M]
-  : R extends [infer R1, infer R2, infer R3]
-  ? [R1, R2, R3, M]
-  : R extends [infer R1, infer R2, infer R3, infer R4]
-  ? [R1, R2, R3, R4, M]
-  : R extends [infer R1, infer R2, infer R3, infer R4, infer R5]
-  ? [R1, R2, R3, R4, R5, M]
-  : R extends [infer R1, infer R2, infer R3, infer R4, infer R5, infer R6]
-  ? [R1, R2, R3, R4, R5, R6, M]
-  : [R, M];
+export type AddColumn<R, M> = R extends Select<any> ? R : Append<R, M>;
+
+export type Append<R, NR> = R extends any[]
+  ? R extends [infer R1]
+    ? [R1, NR]
+    : R extends [infer R1, infer R2]
+    ? [R1, R2, NR]
+    : R extends [infer R1, infer R2, infer R3]
+    ? [R1, R2, R3, NR]
+    : R extends [infer R1, infer R2, infer R3, infer R4]
+    ? [R1, R2, R3, R4, NR]
+    : R extends [infer R1, infer R2, infer R3, infer R4, infer R5]
+    ? [R1, R2, R3, R4, R5, NR]
+    : R extends [infer R1, infer R2, infer R3, infer R4, infer R5, infer R6]
+    ? [R1, R2, R3, R4, R5, R6, NR]
+    : unknown
+  : [R, NR];
 
 // - If you don't select values explicitly by `select`, returns default values ([Model, Model, ..][]).
 // - Otherwise, returns the selected values ([value, value, ...][]).

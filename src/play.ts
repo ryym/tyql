@@ -2,7 +2,6 @@ import { table, rel } from './table';
 import { KnexConnection } from './connection';
 import { camelToSnake } from './column';
 import { and, or } from './ops';
-
 class User {
   static tyql = {
     table: 'users',
