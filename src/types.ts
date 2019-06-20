@@ -164,15 +164,9 @@ export interface SchemaTable<M> {
 export type TableLike = AliasedQuery | SchemaTable<any>;
 
 export interface Joinable<M1, M2> {
-  _joinable_types: [M1, M2];
+  _joinable_types: [M1];
   rightColumns(): ColumnList<M2>;
-  toJoin(): JoinDefinition;
-}
-
-export interface JoinDefinition {
-  tableName: string;
-  tableAlias?: string;
-  on: IExpr<any, any>;
+  on(): IExpr<any, any>;
 }
 
 export interface Joiner<M1, M2> {
