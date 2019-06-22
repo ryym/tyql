@@ -82,6 +82,14 @@ const buildSelect = (select: Selectable<any>[], ctx: BuildContext): Knex.Raw[] =
           raws.push(buildExpr(col, ctx));
         });
         break;
+      case 'JOINABLE':
+        sel
+          .rightColumns()
+          .columns()
+          .forEach(col => {
+            raws.push(buildExpr(col, ctx));
+          });
+        break;
       case 'ALIASED':
         throw new Error('unimplemented');
       default:

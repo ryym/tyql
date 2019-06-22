@@ -164,6 +164,7 @@ export interface SchemaTable<M> {
 export type TableLike = AliasedQuery | SchemaTable<any>;
 
 export interface Joinable<R, M1, M2, Ms> {
+  $type: 'JOINABLE';
   _joinable_types: [R, M1, Ms];
   rightColumns(): ColumnList<M2>;
   on(): IExpr<any, any>;
@@ -188,7 +189,11 @@ export interface TableRelDefinition<V, M1, M2> extends Joinable<M2, M1, M2, M2> 
   rightCol: IColumn<V, M2>;
 }
 
-export type Selectable<M> = IExpr<any, M> | Aliased<any, M> | ColumnList<M>;
+export type Selectable<M> =
+  | IExpr<any, M>
+  | Aliased<any, M>
+  | ColumnList<M>
+  | Joinable<any, any, any, M>;
 export type Groupable<M> = IExpr<any, M> | ColumnList<M>;
 
 export interface Query<Models> {
