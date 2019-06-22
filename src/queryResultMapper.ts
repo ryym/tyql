@@ -1,4 +1,5 @@
 import { Query, Selectable } from './types';
+import { unreachable } from './unreachable';
 
 export const mapRows = (query: Query<any>, rows: any[][]): any[] => {
   const select = query.select || query.defaultSelect;
@@ -19,12 +20,14 @@ const mapRow = (select: Selectable<any>[], rawRow: any[]): any => {
         });
         row[rowIdx++] = m;
         break;
+      case 'JOINABLE':
       case 'ALIASED':
-        // TODO
-        break;
-      default:
+        throw new Error('unimplemented');
+      case 'EXPR':
         row[rowIdx++] = rawRow[rawRowIdx++];
         break;
+      default:
+        unreachable(sel);
     }
   });
   return select.length === 1 ? row[0] : row;
