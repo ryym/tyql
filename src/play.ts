@@ -172,7 +172,10 @@ export async function checkRunning() {
       .orderBy(Users.id.asc(), Users.createdAt.desc(), Users.id.add(1).asc())
       .limit(5)
       .offset(3);
-    console.log(complexQueryResult.toSQL(conn));
+    console.log(...complexQueryResult.toSQL(conn));
+
+    const nestJoins = Users().innerJoin(Users.posts().innerJoin(Posts.comments));
+    console.log(await nestJoins.load(conn));
   } finally {
     conn.close();
   }

@@ -168,7 +168,7 @@ export interface Joinable<R, M1, M2, Ms> {
   _joinable_types: [R, M1, Ms];
   rightColumns(): ColumnList<M2>;
   on(): IExpr<any, any>;
-  joins(): Joinable<any, M1, any, any>[];
+  joins(): Joinable<any, M2, any, any>[];
   innerJoin<R2, Ms2>(joins: Joiner<R2, M2, any, Ms2>): JoinChain<Append<R, R2>, M1, M2, Ms | Ms2>;
 }
 
@@ -200,7 +200,7 @@ export interface Query<Models> {
   from: string;
   fromAlias?: string;
   select: Selectable<any>[] | null;
-  defaultSelect: ColumnList<Models>[];
+  defaultSelect: Selectable<any>[];
   innerJoins: Joinable<any, any, any, any>[];
   where: IExpr<boolean, Models>[];
   groupBy: Groupable<Models>[];

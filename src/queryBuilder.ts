@@ -35,7 +35,7 @@ export class QueryBuilder<From, R, Ms> {
   ): QueryBuilder<From, AddColumn<R, R2>, Ms | Ms2> {
     const join = joiner();
     const query: Query<Ms | Ms2> = { ...this.query };
-    query.defaultSelect.push(join.rightColumns());
+    query.defaultSelect.push(join);
     query.innerJoins.push(join);
     return new QueryBuilder(query);
   }

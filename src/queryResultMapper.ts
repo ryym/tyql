@@ -1,4 +1,4 @@
-import { Query, Selectable } from './types';
+import { Query, Selectable, ColumnList, Joinable } from './types';
 import { unreachable } from './unreachable';
 
 export const mapRows = (query: Query<any>, rows: any[][]): any[] => {
@@ -10,17 +10,34 @@ const mapRow = (select: Selectable<any>[], rawRow: any[]): any => {
   const row: any[] = [];
   let rowIdx = 0;
   let rawRowIdx = 0;
+
+  const mapColumnList = (cl: ColumnList<any>): any => {
+    const cols = cl.columns();
+    const m = cols[0].modelClass.tyql.template();
+    cols.forEach(col => {
+      m[col.toExpr().fieldName] = rawRow[rawRowIdx++];
+    });
+    return m;
+  };
+
+  const mapJoinable = (j: Joinable<any, any, any, any>): any => {
+    const joins = j.joins();
+    const root = mapColumnList(j.rightColumns());
+    if (joins.length === 0) {
+      return root;
+    }
+    const subJoins = joins.map(mapJoinable);
+    return [root, ...subJoins];
+  };
+
   select.forEach(sel => {
     switch (sel.$type) {
       case 'COLUMN_LIST':
-        const cols = sel.columns();
-        const m = cols[0].modelClass.tyql.template();
-        sel.columns().forEach(col => {
-          m[col.toExpr().fieldName] = rawRow[rawRowIdx++];
-        });
-        row[rowIdx++] = m;
+        row[rowIdx++] = mapColumnList(sel);
         break;
       case 'JOINABLE':
+        row[rowIdx++] = mapJoinable(sel);
+        break;
       case 'ALIASED':
         throw new Error('unimplemented');
       case 'EXPR':
