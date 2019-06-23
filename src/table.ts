@@ -1,5 +1,5 @@
 import { ModelClass, Joiner, TableRel } from './types';
-import { FieldNames, FieldNamesOfType, Column, Fields, ModelColumnList } from './column';
+import { FieldNames, FieldNamesOfType, ColumnSet, ModelColumnList, ColumnMap } from './column';
 import { TableActions } from './tableActions';
 import { RelationActions } from './relationActions';
 
@@ -44,8 +44,6 @@ export const rel = <M1, M2, C2 extends FieldNames<M2>>(
     rightModel,
   };
 };
-
-export type ColumnSet<M> = { readonly [K in keyof Fields<M>]: Column<M[K], M> };
 
 export interface RelationBuilderBase<V, M1, M2>
   extends Defunction,
@@ -136,15 +134,24 @@ const makeRelationBuilders = <M, Rels extends RelsTemplate<M>>(
       const rightColumnSet = newColumnSet(rightColumnList);
       const leftCol = (leftColumns as any)[leftColName];
 
-      const originalRightCol = rightColumnSet[rightColName as any];
-      const rightCol = new Column<any, any>(rightModel, {
-        tableName: tableAlias,
-        fieldName: originalRightCol.fieldName,
-        columnName: originalRightCol.columnName,
-      });
+      const rightCol = rightColumnSet[rightColName as any];
+
+      const joinCondition = (left: ColumnMap<any>, right: ColumnMap<any>) => {
+        const leftCol = left[leftColName as string];
+        const rightCol = right[rightColName as string];
+        return leftCol.eq(rightCol);
+      };
 
       const base = defunc(
-        () => new RelationActions<any, M, any>(leftCol, rightCol, rightColumnList),
+        () =>
+          new RelationActions<any, M, any>(
+            leftColumns,
+            rightColumnSet,
+            leftCol,
+            rightCol,
+            joinCondition,
+            rightColumnList
+          ),
         `${tableAlias}_builder`
       );
 

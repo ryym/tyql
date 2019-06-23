@@ -2,6 +2,9 @@ import { table, rel } from './table';
 import { KnexConnection } from './connection';
 import { camelToSnake } from './column';
 import { and, or } from './ops';
+
+import './play-joins';
+
 class User {
   static tyql = {
     table: 'users',
@@ -174,8 +177,21 @@ export async function checkRunning() {
       .offset(3);
     console.log(...complexQueryResult.toSQL(conn));
 
-    const nestJoins = Users().innerJoin(Users.posts().innerJoin(Posts.comments));
-    console.log(await nestJoins.load(conn));
+    const nestJoins = await Users()
+      .innerJoin(Users.comments)
+      .innerJoin(Users.posts().innerJoin(Posts.comments))
+      .select(Users.userName, Users.comments.content, Users.posts.title, Posts.comments.content)
+      .load(conn);
+
+    // const classes = nestJoins.map(([user, comment, post, postComment]) => {
+    //   return [
+    //     user.constructor.name,
+    //     comment.constructor.name,
+    //     [post.constructor.name, postComment.constructor.name],
+    //   ];
+    // });
+
+    console.log(nestJoins);
   } finally {
     conn.close();
   }

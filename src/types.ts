@@ -3,6 +3,9 @@
 // whose property names are defined by user (e.g. column names).
 // We avoid possible name collisions by prefixing our property names by `$`.
 
+// TODO: Avoid circlar import.
+import { ColumnMap } from './column';
+
 export interface ModelConfig<M> {
   readonly table: string;
   template(): M;
@@ -167,10 +170,17 @@ export interface Joinable<R, M1, M2, Ms> {
   $type: 'JOINABLE';
   _joinable_types: [R, M1, Ms];
   rightColumns(): ColumnList<M2>;
-  on(): IExpr<any, any>;
+  leftTable(): ColumnMap<M1>;
+  rightTable(): ColumnMap<M2>;
+  joinCondition: JoinConditioner<M1, M2>;
   joins(): Joinable<any, M2, any, any>[];
   innerJoin<R2, Ms2>(joins: Joiner<R2, M2, any, Ms2>): JoinChain<Append<R, R2>, M1, M2, Ms | Ms2>;
 }
+
+export type JoinConditioner<M1, M2> = (
+  left: ColumnMap<M1>,
+  right: ColumnMap<M2>
+) => IExpr<any, any>;
 
 export interface JoinChain<R, M1, M2, Ms> extends Joiner<R, M1, M2, Ms> {
   innerJoin<R2, Ms2>(joins: Joiner<R2, M2, any, Ms2>): JoinChain<Append<R, R2>, M1, M2, Ms | Ms2>;

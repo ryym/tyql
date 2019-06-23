@@ -122,7 +122,7 @@ const buildJoins = (
       ? `${cols.tableName()} AS ${cols.tableAlias()}`
       : cols.tableName();
 
-    results.push([table, buildExpr(j.on(), ctx)]);
+    results.push([table, buildExpr(j.joinCondition(j.leftTable(), j.rightTable()), ctx)]);
     buildJoins(j.joins(), ctx, results);
   });
 
