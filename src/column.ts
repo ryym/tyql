@@ -11,6 +11,9 @@ export type FieldNamesOfType<T, V> = {
   [P in FieldNames<T>]: T[P] extends V | null | undefined ? P : never
 }[FieldNames<T>];
 
+export type ColumnSet<M> = { readonly [K in keyof Fields<M>]: Column<M[K], M> };
+export type ColumnMap<M> = { readonly [key: string]: Column<any, M> };
+
 export class Column<V, M> extends Ops<V, M> implements IColumn<V, M> {
   readonly $type = 'EXPR' as const;
   readonly _iexpr_types = iexprPhantomTypes<V, M>();

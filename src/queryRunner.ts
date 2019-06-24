@@ -75,12 +75,25 @@ export const constructQuery = (
 const buildSelect = (select: Selectable<any>[], ctx: BuildContext): Knex.Raw[] => {
   const raws: Knex.Raw[] = [];
 
+  const buildFromJoinable = (join: Joinable<any, any, any, any>) => {
+    join
+      .rightColumns()
+      .columns()
+      .forEach(col => {
+        raws.push(buildExpr(col, ctx));
+      });
+    join.joins().forEach(buildFromJoinable);
+  };
+
   select.forEach(sel => {
     switch (sel.$type) {
       case 'COLUMN_LIST':
         sel.columns().forEach(col => {
           raws.push(buildExpr(col, ctx));
         });
+        break;
+      case 'JOINABLE':
+        buildFromJoinable(sel);
         break;
       case 'ALIASED':
         throw new Error('unimplemented');
@@ -98,12 +111,22 @@ const concatPredicates = (preds: IExpr<boolean, any>[], ctx: BuildContext): Knex
   return buildExpr(pred, ctx);
 };
 
-const buildJoins = (joins: Joinable<any, any>[], ctx: BuildContext): [string, Knex.Raw][] => {
-  return joins.map(j => {
-    const def = j.toJoin();
-    const table = def.tableAlias ? `${def.tableName} AS ${def.tableAlias}` : def.tableName;
-    return [table, buildExpr(def.on, ctx)];
+const buildJoins = (
+  joins: Joinable<any, any, any, any>[],
+  ctx: BuildContext,
+  results: [string, Knex.Raw][] = []
+): [string, Knex.Raw][] => {
+  joins.forEach(j => {
+    const cols = j.rightColumns();
+    const table = cols.tableAlias()
+      ? `${cols.tableName()} AS ${cols.tableAlias()}`
+      : cols.tableName();
+
+    results.push([table, buildExpr(j.joinCondition(j.leftTable(), j.rightTable()), ctx)]);
+    buildJoins(j.joins(), ctx, results);
   });
+
+  return results;
 };
 
 const buildGroupBy = (exprs: Groupable<any>[], ctx: BuildContext): Knex.Raw[] => {

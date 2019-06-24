@@ -36,39 +36,39 @@ export class TableActions<M> implements ColumnList<M> {
     return new RelationLoader(rels);
   }
 
-  query(): QueryBuilder<M, M> {
+  query(): QueryBuilder<M, M, M> {
     return new QueryBuilder(newQuery(this));
   }
 
-  select<Sels extends Selectable<M>[]>(...sels: Sels): QueryBuilder<Select<ValuesOf<Sels>>, M> {
+  select<Sels extends Selectable<M>[]>(...sels: Sels): QueryBuilder<M, Select<ValuesOf<Sels>>, M> {
     return this.query().select(...sels);
   }
 
-  innerJoin<M1 extends M, M2>(join: Joiner<M1, M2>): QueryBuilder<AddColumn<M, M2>, M | M2> {
+  innerJoin<R2, Ms2>(join: Joiner<R2, M, any, Ms2>): QueryBuilder<M, AddColumn<M, R2>, M | Ms2> {
     return this.query().innerJoin(join);
   }
 
-  where(...preds: IExpr<boolean, M>[]): QueryBuilder<M, M> {
+  where(...preds: IExpr<boolean, M>[]): QueryBuilder<M, M, M> {
     return this.query().where(...preds);
   }
 
-  groupBy(...exprs: IExpr<any, M>[]): QueryBuilder<M, M> {
+  groupBy(...exprs: IExpr<any, M>[]): QueryBuilder<M, M, M> {
     return this.query().groupBy(...exprs);
   }
 
-  having(...preds: IExpr<boolean, M>[]): QueryBuilder<M, M> {
+  having(...preds: IExpr<boolean, M>[]): QueryBuilder<M, M, M> {
     return this.query().having(...preds);
   }
 
-  orderBy(...ords: Orderer<M>[]): QueryBuilder<M, M> {
+  orderBy(...ords: Orderer<M>[]): QueryBuilder<M, M, M> {
     return this.query().orderBy(...ords);
   }
 
-  limit(n: number): QueryBuilder<M, M> {
+  limit(n: number): QueryBuilder<M, M, M> {
     return this.query().limit(n);
   }
 
-  offset(n: number): QueryBuilder<M, M> {
+  offset(n: number): QueryBuilder<M, M, M> {
     return this.query().offset(n);
   }
 

@@ -12,7 +12,7 @@ export class RelationLoader<M, RS extends TableRel<any, M, any>[]> {
   async loadMaps(records: M[], conn: Connection): Promise<RelsMap<M, RS>> {
     const queries = this.rels.map(tableRel => {
       const rel = tableRel();
-      const q = new QueryBuilder<any, any>(newQuery(rel.rightColumns()));
+      const q = new QueryBuilder<M, any, any>(newQuery(rel.rightColumns()));
 
       // TODO: Should `rel.$rightCol.in(values)`.
       const key = rel.leftCol.toExpr().fieldName;

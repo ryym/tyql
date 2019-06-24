@@ -3,6 +3,8 @@ import { KnexConnection } from './connection';
 import { camelToSnake } from './column';
 import { and, or } from './ops';
 
+import './play-joins';
+
 class User {
   static tyql = {
     table: 'users',
@@ -28,10 +30,15 @@ class Post {
 class Comment {
   static tyql = {
     table: 'comments',
-    template: () => new Comment(0, 0, ''),
+    template: () => new Comment(0, 0, 0, ''),
     columnNameRule: camelToSnake,
   };
-  constructor(public id: number, public commenterId: number, public content: string) {}
+  constructor(
+    public id: number,
+    public commenterId: number,
+    public postId: number,
+    public content: string
+  ) {}
 }
 
 export const Users = table(User, {
@@ -44,12 +51,14 @@ export const Users = table(User, {
 export const Posts = table(Post, {
   rels: {
     author: rel(User, 'id', 'authorId'),
+    comments: rel(Comment, 'postId', 'id'),
   },
 });
 
 export const Comments = table(Comment, {
   rels: {
     commenter: rel(User, 'id', 'commenterId'),
+    post: rel(Post, 'id', 'postId'),
   },
 });
 
@@ -71,6 +80,16 @@ export async function checkTypes() {
     .innerJoin(Users.posts)
     .load(conn);
   console.log(userAndPosts);
+
+  const userAndCommentAndPostWithComments = await Users()
+    .innerJoin(Users.comments)
+    .innerJoin(
+      Users.posts()
+        .innerJoin(Posts.comments().innerJoin(Comments.commenter))
+        .innerJoin(Posts.author)
+    )
+    .load(conn);
+  console.log(userAndCommentAndPostWithComments);
 
   const tableAndCols = await Users()
     .innerJoin(Users.posts)
@@ -156,7 +175,23 @@ export async function checkRunning() {
       .orderBy(Users.id.asc(), Users.createdAt.desc(), Users.id.add(1).asc())
       .limit(5)
       .offset(3);
-    console.log(complexQueryResult.toSQL(conn));
+    console.log(...complexQueryResult.toSQL(conn));
+
+    const nestJoins = await Users()
+      .innerJoin(Users.comments)
+      .innerJoin(Users.posts().innerJoin(Posts.comments))
+      .select(Users.userName, Users.comments.content, Users.posts.title, Posts.comments.content)
+      .load(conn);
+
+    // const classes = nestJoins.map(([user, comment, post, postComment]) => {
+    //   return [
+    //     user.constructor.name,
+    //     comment.constructor.name,
+    //     [post.constructor.name, postComment.constructor.name],
+    //   ];
+    // });
+
+    console.log(nestJoins);
   } finally {
     conn.close();
   }
