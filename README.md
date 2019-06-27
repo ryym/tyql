@@ -9,6 +9,18 @@
 Tyql は柔軟でタイプセーフな DB アクセスを実現する ORM /クエリビルダーです。
 Tyql を使えば、最小限の手間で relational database とのインタラクションを安全かつ効率的に記述する事ができます。
 
+Tyql は TypeScript が可能にする極めて柔軟な型定義を活かして作られています。例えば以下のような機能が使われています:
+
+- [Mapped types](mapped-types) (>= TypeScript 2.1)
+- [Conditional Types](conditional-types) (>= TypeScript 2.8)
+- [Strongly typed parameter list ](typed-parameter-list) (>= TypeScript 3.0)
+
+そのため、 Tyql は TypeScript 3.0 以降でのみ動作します。
+
+[mapped-types]: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-1.html#mapped-types
+[conditional-types]: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-8.html#conditional-types
+[typed-parameter-list]: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-0.html#tuples-in-rest-parameters-and-spread-expressions
+
 ## Features
 
 - Type safe query construction
