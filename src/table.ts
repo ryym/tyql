@@ -97,14 +97,14 @@ const BUILTIN_FUNCTION_PROPS = [
 
 // The syntax highlight of VSCode does not work correctly
 // if we define this by arrow function :(
-export function table<M, Rels extends RelsTemplate<M>>(
+export function newQueryBuilder<M, Rels extends RelsTemplate<M>>(
   modelClass: ModelClass<M>,
-  config: TableConfig<M, Rels> = {}
+  rels?: Rels
 ): Table<M, RelationBuilders<M, Rels>> {
   const tableName = modelClass.tyql.table;
   const columnList = new ModelColumnList(modelClass);
   const columnSet = newColumnSet(columnList);
-  const relations = makeRelationBuilders(tableName, columnSet, config.rels || ({} as Rels));
+  const relations = makeRelationBuilders(tableName, columnSet, rels || ({} as Rels));
 
   const base = defunc(() => new TableActions(columnList), `${tableName}_builder`);
   return Object.assign(base, columnSet, relations);

@@ -1,4 +1,4 @@
-import { table, to } from './table';
+import { newQueryBuilder, to } from './table';
 import { KnexConnection } from './connection';
 import { camelToSnake } from './column';
 import { and, or } from './ops';
@@ -41,25 +41,19 @@ class Comment {
   ) {}
 }
 
-export const Users = table(User, {
-  rels: {
-    posts: to(Post, 'authorId', 'id'),
-    comments: to(Comment, 'commenterId', 'id'),
-  },
+export const Users = newQueryBuilder(User, {
+  posts: to(Post, 'authorId', 'id'),
+  comments: to(Comment, 'commenterId', 'id'),
 });
 
-export const Posts = table(Post, {
-  rels: {
-    author: to(User, 'id', 'authorId'),
-    comments: to(Comment, 'postId', 'id'),
-  },
+export const Posts = newQueryBuilder(Post, {
+  author: to(User, 'id', 'authorId'),
+  comments: to(Comment, 'postId', 'id'),
 });
 
-export const Comments = table(Comment, {
-  rels: {
-    commenter: to(User, 'id', 'commenterId'),
-    post: to(Post, 'id', 'postId'),
-  },
+export const Comments = newQueryBuilder(Comment, {
+  commenter: to(User, 'id', 'commenterId'),
+  post: to(Post, 'id', 'postId'),
 });
 
 const conn = {

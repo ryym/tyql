@@ -1,10 +1,5 @@
-import { table, to } from './table';
+import { newQueryBuilder, to } from './table';
 import { KnexConnection } from './connection';
-
-// const conn = {
-//   runQuery: (): any => null,
-//   toSQL: (): any => null,
-// };
 
 class A {
   static tyql = {
@@ -38,24 +33,18 @@ class D {
   public d: number = 0;
 }
 
-export const As = table(A, {
-  rels: {
-    bs: to(B, 'b', 'a'),
-    cs: to(C, 'c', 'a'),
-  },
+export const As = newQueryBuilder(A, {
+  bs: to(B, 'b', 'a'),
+  cs: to(C, 'c', 'a'),
 });
 
-export const Bs = table(B, {
-  rels: {
-    cs: to(C, 'c', 'b'),
-    ds: to(D, 'd', 'b'),
-  },
+export const Bs = newQueryBuilder(B, {
+  cs: to(C, 'c', 'b'),
+  ds: to(D, 'd', 'b'),
 });
 
-export const Cs = table(C, {
-  rels: {
-    ds: to(D, 'd', 'c'),
-  },
+export const Cs = newQueryBuilder(C, {
+  ds: to(D, 'd', 'c'),
 });
 
 export const conn = new KnexConnection({
