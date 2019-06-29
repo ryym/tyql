@@ -1,4 +1,4 @@
-import { table, rel } from './table';
+import { table, to } from './table';
 import { KnexConnection } from './connection';
 
 // const conn = {
@@ -40,21 +40,21 @@ class D {
 
 export const As = table(A, {
   rels: {
-    bs: rel(B, 'b', 'a'),
-    cs: rel(C, 'c', 'a'),
+    bs: to(B, 'b', 'a'),
+    cs: to(C, 'c', 'a'),
   },
 });
 
 export const Bs = table(B, {
   rels: {
-    cs: rel(C, 'c', 'b'),
-    ds: rel(D, 'd', 'b'),
+    cs: to(C, 'c', 'b'),
+    ds: to(D, 'd', 'b'),
   },
 });
 
 export const Cs = table(C, {
   rels: {
-    ds: rel(D, 'd', 'c'),
+    ds: to(D, 'd', 'c'),
   },
 });
 

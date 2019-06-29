@@ -1,4 +1,4 @@
-import { table, rel } from './table';
+import { table, to } from './table';
 import { KnexConnection } from './connection';
 import { camelToSnake } from './column';
 import { and, or } from './ops';
@@ -43,22 +43,22 @@ class Comment {
 
 export const Users = table(User, {
   rels: {
-    posts: rel(Post, 'authorId', 'id'),
-    comments: rel(Comment, 'commenterId', 'id'),
+    posts: to(Post, 'authorId', 'id'),
+    comments: to(Comment, 'commenterId', 'id'),
   },
 });
 
 export const Posts = table(Post, {
   rels: {
-    author: rel(User, 'id', 'authorId'),
-    comments: rel(Comment, 'postId', 'id'),
+    author: to(User, 'id', 'authorId'),
+    comments: to(Comment, 'postId', 'id'),
   },
 });
 
 export const Comments = table(Comment, {
   rels: {
-    commenter: rel(User, 'id', 'commenterId'),
-    post: rel(Post, 'id', 'postId'),
+    commenter: to(User, 'id', 'commenterId'),
+    post: to(Post, 'id', 'postId'),
   },
 });
 
@@ -197,3 +197,30 @@ export async function checkRunning() {
   }
 }
 checkRunning();
+
+export interface TmpInterface<Sels = void> {
+  select<Sels extends any[]>(...sels: Sels): TmpInterface<Sels>;
+  load(): HogeEach<Sels>;
+}
+
+type HogeEach<Sels> = { [P in keyof Sels]: Hoge<Sels[P]> };
+type Hoge<T> = T extends Col<infer V> ? V : T extends { [key: string]: any } ? HogeEach<T> : never;
+
+type Col<V> = {
+  value: V;
+};
+
+export function _check(t: TmpInterface) {
+  let colName = { value: 'bob' };
+  let colId = { value: 0 };
+  let q = t.select(colId, colName, {
+    myId: colId,
+    myName: colName,
+    inner: {
+      nestedId: colId,
+    },
+  });
+  let [id, name, other] = q.load();
+  console.log(id, name, other.myName, other.inner.nestedId);
+  // console.log(ret[0] + 1, ret[1].length, ret[2].myId.toFixed());
+}

@@ -33,7 +33,7 @@ const defunc = <F extends Function>(f: F, name?: string): F => {
   return f;
 };
 
-export const rel = <M1, M2, C2 extends FieldNames<M2>>(
+export const to = <M1, M2, C2 extends FieldNames<M2>>(
   rightModel: ModelClass<M2>,
   rightColName: C2,
   leftColName: FieldNamesOfType<M1, M2[C2]>
