@@ -1,5 +1,5 @@
 import { newQueryBuilder, to } from './table';
-import { KnexConnection } from './connection';
+import { Connection, Db } from './connection';
 import { camelToSnake } from './column';
 import { and, or } from './ops';
 
@@ -110,13 +110,10 @@ export async function checkTypes() {
 }
 
 export async function checkRunning() {
-  const conn = new KnexConnection({
-    client: 'pg',
-    connection: {
-      host: 'localhost',
-      user: 'ryu',
-      database: 'tyql_sample',
-    },
+  const conn = new Connection(Db.POSTGRES, {
+    host: 'localhost',
+    user: 'ryu',
+    database: 'tyql_sample',
   });
   try {
     const users = await Users().load(conn);

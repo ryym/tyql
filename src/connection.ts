@@ -1,16 +1,32 @@
 import * as Knex from 'knex';
-import { Connection, Query } from './types';
+import { Connection as IConnection, Query } from './types';
 import { runQuery, BuildContext, constructQuery } from './queryRunner';
 
 export type Quote = (identifier: string) => string;
 
-// TODO: Hide Knex as an implementation detail.
-export class KnexConnection implements Connection {
+export enum Db {
+  POSTGRES = 'pg',
+  MYSQL = 'mysql',
+}
+
+export type Config = {
+  host?: string;
+  port?: number;
+  user?: string;
+  password?: string;
+  database: string;
+};
+
+export class Connection implements IConnection {
   private readonly context: BuildContext;
 
-  constructor(config: Knex.Config) {
-    const knex = Knex(config);
-    const quote = getQuoteFunc(config);
+  constructor(db: Db, config: Config) {
+    const knexConfig: Knex.Config = {
+      client: db,
+      connection: config,
+    };
+    const knex = Knex(knexConfig);
+    const quote = getQuoteFunc(knexConfig);
     this.context = { knex, quote };
   }
 

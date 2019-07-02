@@ -1,5 +1,5 @@
 import { newQueryBuilder, to } from './table';
-import { KnexConnection } from './connection';
+import { Connection, Db } from './connection';
 
 class A {
   static tyql = {
@@ -47,13 +47,10 @@ export const Cs = newQueryBuilder(C, {
   ds: to(D, 'd', 'c'),
 });
 
-export const conn = new KnexConnection({
-  client: 'pg',
-  connection: {
-    host: 'localhost',
-    user: 'ryu',
-    database: 'tyql_sample',
-  },
+const conn = new Connection(Db.POSTGRES, {
+  host: 'localhost',
+  user: 'ryu',
+  database: 'tyql_sample',
 });
 
 export const joinCheck = () => {
