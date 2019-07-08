@@ -229,7 +229,13 @@ export type Select<V> = { selects: V };
 
 export type ValuesOf<T> = { [P in keyof T]: ValueOf<T[P]> };
 
-type ValueOf<S> = S extends ColumnList<infer M> ? M : S extends IExpr<infer V, any> ? V : never;
+type ValueOf<S> = S extends ColumnList<infer M>
+  ? M
+  : S extends Joinable<any, any, infer M, any>
+  ? M
+  : S extends IExpr<infer V, any>
+  ? V
+  : never;
 
 // TODO: Should return never if R tuple is too large.
 // This definition returns [tuple, M] in that case,
