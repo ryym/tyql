@@ -2,6 +2,8 @@
 
 # Tyql - Safe, Lightweight ORM for TypeScript
 
+[![CircleCI](https://circleci.com/gh/ryym/tyql.svg?style=svg)](https://circleci.com/gh/ryym/tyql)
+
 > NOTE: Currently this document is written in Japanese.
 > I'll rewrite this in English later.  
 > Also, this document is in work in progress as well as the library itself.
