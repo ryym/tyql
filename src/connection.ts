@@ -63,3 +63,35 @@ const getQuoteFunc = (config: Knex.Config): Quote => {
   }
   return quote;
 };
+
+interface FakceConnectionConfig {
+  throwOnRunning: boolean;
+}
+
+class FakeConnection implements IConnection {
+  constructor(private readonly config: FakceConnectionConfig) {}
+
+  async runQuery(_query: Query<any>): Promise<any> {
+    if (this.config.throwOnRunning) {
+      throw new Error('[FakeConnection] Cannot run query with fake connection');
+    }
+    return Promise.resolve([]);
+  }
+
+  toSQL(_query: Query<any>): [string, any[]] {
+    if (this.config.throwOnRunning) {
+      throw new Error('[FakeConnection] Cannot construct SQL with fake connection');
+    }
+    return ['select "fake result"', []];
+  }
+}
+
+const defaultFakeConnectionConfig: FakceConnectionConfig = {
+  throwOnRunning: false,
+};
+export const newFakeConnection = (conf?: FakceConnectionConfig) => {
+  return new FakeConnection({
+    ...defaultFakeConnectionConfig,
+    ...(conf || {}),
+  });
+};
