@@ -18,7 +18,8 @@
   "scripts": {
     "build": "rm -rf dist && npx tsc",
     "start": "npx tsc --watch",
-    "preversion": "yarn build"
+    "preversion": "yarn build",
+    "test": "npx jest"
   },
   "dependencies": {
     "knex": "^0.16.5"

@@ -1,0 +1,63 @@
+version: 2.1
+
+workflows:
+  build:
+    jobs:
+      - test:
+        filters:
+          tags:
+            only: /.+/
+      - release:
+          requires:
+            - test
+          filters:
+            tags:
+              only: /v[0-9.]+/
+            branches:
+              ignore: /.*/
+
+jobs:
+  test:
+    executor: node
+    steps:
+      - checkout
+      - yarn_install
+      - run: yarn build
+      - run: yarn test
+      - persist_to_workspace:
+          root: ~/repo
+          paths: .
+
+  release:
+    executor: node
+    steps:
+      - attach_workspace:
+          at: ~/repo
+      - run:
+          name: Ensure distribution is built
+          command: test -d dist && ls dist/lib dist/types || false
+      - run:
+          # https://circleci.com/blog/publishing-npm-packages-using-circleci-2-0/
+          name: Authenticate with registry
+          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/repo/.npmrc
+      - run: npm publish
+
+executors:
+  node:
+    docker:
+      - image: circleci/node:10.15.3
+    working_directory: ~/repo
+
+commands:
+  yarn_install:
+    steps:
+      - restore_cache:
+          name: Restore Yarn cache
+          keys:
+            - yarnpkg-v1-{{ arch }}-{{ checksum "yarn.lock" }}
+      - run: yarn install
+      - save_cache:
+          name: Save Yarn cache
+          key: yarnpkg-v1-{{ arch }}-{{ checksum "yarn.lock" }}
+          paths:
+            - node_modules
