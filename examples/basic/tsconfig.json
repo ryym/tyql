@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module":"commonjs",
+    "moduleResolution": "node",
+    "outDir": "dist",
+    "baseUrl": ".",
+    "allowJs": false,
+    "strict": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "downlevelIteration": true
+  },
+  "include": ["*.ts"]
+}
+

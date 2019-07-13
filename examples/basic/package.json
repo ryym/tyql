@@ -1,0 +1,10 @@
+{
+  "name": "basic",
+  "private": true,
+  "//": [
+    "NOTE: You need to link Tyql package first."
+  ],
+  "scripts": {
+    "start": "npx tsc -w"
+  }
+}

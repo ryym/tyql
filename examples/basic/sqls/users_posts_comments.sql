@@ -1,3 +1,5 @@
+/* Create sample tables with some sample records. */
+
 CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -24,8 +26,8 @@ CREATE TABLE IF NOT EXISTS posts (
 
 INSERT INTO posts (id, author_id, title, content) VALUES
   (1, 1, 'my first post', 'Hello, world!'),
-  (2, 1, 'my second post', 'Good morning, world!'),
-  (3, 2, 'TypeScript is awesome', 'You must use it')
+  (2, 2, 'my great post', 'Good morning, world!'),
+  (3, 1, 'TypeScript is awesome', 'You must use it')
 ON CONFLICT DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS comments (
