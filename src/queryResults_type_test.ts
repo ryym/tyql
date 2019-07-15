@@ -50,11 +50,6 @@ export const Comments = newQueryBuilder(Comment, {
 const fakeConn = newFakeConnection();
 
 describe('Type inferences of query results', () => {
-  it.skip('distinguishes array types', () => {
-    // This must be error.
-    assertType<Equals<any[], number[]>>();
-  });
-
   it('infers Model[] if no selects and joins', async () => {
     const users = await Users().load(fakeConn);
     assertType<Equals<typeof users, User[]>>();

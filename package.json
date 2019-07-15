@@ -19,12 +19,14 @@
     "build": "rm -rf dist && npx tsc",
     "start": "npx tsc --watch",
     "preversion": "yarn build",
-    "test": "npx jest"
+    "test": "npx jest",
+    "test:w": "npx jest --watch"
   },
   "dependencies": {
     "knex": "^0.16.5"
   },
   "devDependencies": {
+    "@ktb/type-compare": "^0.1.4",
     "@types/jest": "^24.0.15",
     "@types/node": "^12.0.2",
     "jest": "^24.8.0",
