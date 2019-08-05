@@ -75,4 +75,8 @@ export class TableActions<M> implements ColumnList<M> {
   load(conn: Connection): Promise<ResultRowType<M>[]> {
     return this.query().load(conn);
   }
+
+  first(conn: Connection): Promise<ResultRowType<M> | undefined> {
+    return this.query().first(conn);
+  }
 }
