@@ -15,10 +15,6 @@ export const runQuery = async (query: Query<any>, ctx: BuildContext): Promise<an
   const builder = ctx.knex.select().options({ rowMode: 'array' });
   const q = constructQuery(builder, query, ctx);
 
-  // TODO: Remove debug code.
-  const sql = q.toSQL();
-  console.log(sql.sql, sql.bindings);
-
   const rows = await q;
   return mapRows(query, rows);
 };
