@@ -1,0 +1,14 @@
+# Docker Compose file for E2E test.
+
+version: '3'
+
+services:
+  db:
+    image: postgres:10.4
+    environment:
+      - POSTGRES_USER=tyql
+      - POSTGRES_PASSWORD=tyql
+      - POSTGRES_DB=sample
+    ports:
+      - '5433:5432'
+
