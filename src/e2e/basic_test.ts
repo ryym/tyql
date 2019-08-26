@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-import { newQueryBuilder, to, Connection, Db, camelToSnake } from '../';
+import { table, to, Connection, Db, camelToSnake } from '../';
 
 type Fields<T> = { [P in FieldNames<T>]: T[P] };
 
@@ -57,17 +57,17 @@ class Comment {
   };
 }
 
-export const Users = newQueryBuilder(User, {
+export const Users = table(User, {
   posts: to(Post, 'authorId', 'id'),
   comments: to(Comment, 'commenterId', 'id'),
 });
 
-export const Posts = newQueryBuilder(Post, {
+export const Posts = table(Post, {
   author: to(User, 'id', 'authorId'),
   comments: to(Comment, 'postId', 'id'),
 });
 
-export const Comments = newQueryBuilder(Comment, {
+export const Comments = table(Comment, {
   commenter: to(User, 'id', 'commenterId'),
   post: to(Post, 'id', 'postId'),
 });

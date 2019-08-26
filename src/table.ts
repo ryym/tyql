@@ -77,7 +77,7 @@ export type RelsTemplate<M1, M2 = any, P extends keyof M2 = any> = {
 export type RelationBuilders<M1, Rels> = {
   [P in keyof Rels]: Rels[P] extends RelsTemplateItem<M1, infer M2, infer V>
     ? RelationBuilder<V, M1, M2>
-    : never
+    : never;
 };
 
 export type TableConfig<M, Rels extends RelsTemplate<M>> = {
@@ -97,7 +97,7 @@ const BUILTIN_FUNCTION_PROPS = [
 
 // The syntax highlight of VSCode does not work correctly
 // if we define this by arrow function :(
-export function newQueryBuilder<M, Rels extends RelsTemplate<M>>(
+export function table<M, Rels extends RelsTemplate<M>>(
   modelClass: ModelClass<M>,
   rels?: Rels
 ): Table<M, RelationBuilders<M, Rels>> {

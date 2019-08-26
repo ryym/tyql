@@ -1,5 +1,5 @@
 import { assertType, Equals } from './testutils/typeAssert';
-import { newQueryBuilder, to } from './table';
+import { table, to } from './table';
 import { newFakeConnection } from './connection';
 
 class User {
@@ -32,17 +32,17 @@ class Comment {
   ) {}
 }
 
-export const Users = newQueryBuilder(User, {
+export const Users = table(User, {
   posts: to(Post, 'authorId', 'id'),
   comments: to(Comment, 'commenterId', 'id'),
 });
 
-export const Posts = newQueryBuilder(Post, {
+export const Posts = table(Post, {
   author: to(User, 'id', 'authorId'),
   comments: to(Comment, 'postId', 'id'),
 });
 
-export const Comments = newQueryBuilder(Comment, {
+export const Comments = table(Comment, {
   commenter: to(User, 'id', 'commenterId'),
   post: to(Post, 'id', 'postId'),
 });

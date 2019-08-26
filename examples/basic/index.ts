@@ -1,4 +1,4 @@
-import { camelToSnake, Connection, Db, newQueryBuilder, to } from 'tyql';
+import { camelToSnake, Connection, Db, table, to } from 'tyql';
 
 // - user has_many posts and comments
 // - post has_many comments
@@ -41,12 +41,12 @@ class Comment {
   };
 }
 
-const Users = newQueryBuilder(User, {
+const Users = table(User, {
   posts: to(Post, 'authorId', 'id'),
   comments: to(Comment, 'commenterId', 'id'),
 });
 
-const Posts = newQueryBuilder(Post, {
+const Posts = table(Post, {
   comments: to(Comment, 'postId', 'id'),
 });
 
